@@ -23,31 +23,31 @@ from zipfile import ZipFile
 #---------------------------------------------------------------------
 #---------------------------------------------------------------------
 # Notes:
-# 
-# Extracting data from the input file (ADCIRC output file in .nc format) 
+#
+# Extracting data from the input file (ADCIRC output file in .nc format)
 # as numpy arrays.
 # Longitude (lon) and Latitude (lat) of every vertex in the entire domain.
-# Description of triangular elements (nv) as numpy arrays of 3 vertices 
+# Description of triangular elements (nv) as numpy arrays of 3 vertices
 # for each triangle.
-# ADCIRC output values (like maximum water elevation, maximum wave 
-# height, maximum wind speed etc.) stored against the corresponding 
+# ADCIRC output values (like maximum water elevation, maximum wave
+# height, maximum wind speed etc.) stored against the corresponding
 # variable name (var)
 #
-# If the ADCIRC output file contains `_`FILL VALUE (= -99999) var gets 
-# stored as a masked numpy array. The masked or redundant value is 
+# If the ADCIRC output file contains `_`FILL VALUE (= -99999) var gets
+# stored as a masked numpy array. The masked or redundant value is
 # replaced by -100.
-# 
-# For better visualization the extreme values for each variable 
+#
+# For better visualization the extreme values for each variable
 # are readjusted.
 #
 # Time step information (time`_`var) Used to extract startdate.
 #
-# The time step values are converted into 'datetime' objects and then 
-# into a string format to use while writing shapefiles later 
+# The time step values are converted into 'datetime' objects and then
+# into a string format to use while writing shapefiles later
 # (used for time series output data).
 #
-# matplotlib.use('Agg') is used to specify a matplotlib backend 
-# which if not specified creates an error while running in cluster 
+# matplotlib.use('Agg') is used to specify a matplotlib backend
+# which if not specified creates an error while running in cluster
 #
 #---------------------------------------------------------------------
 #---------------------------------------------------------------------
@@ -95,7 +95,7 @@ parser.add_option("--fricexagval", dest="fricexagval", default=1, help="enter th
 #nc=netCDF4.Dataset('http://opendap.renci.org:1935/thredds/dodsC/ASGS/arthur/10/nc_inundation_v9.99/hatteras.renci.org/nchi/nhcConsensus/maxele.63.nc').variables
 #'http://opendap.renci.org:1935/thredds/dodsC/tc/arthur/12/nc6b/hatteras.renci.org/nclo/nhcConsensus/maxele.63.nc'
 #
-# time0 : the current time denoting the time when program run starts 
+# time0 : the current time denoting the time when program run starts
 time0=time.time()
 #
 #When --createlocation is set to yes, a GRASS Location is created for use with r.grow (--grow option) and then Kalpana exits. A location named GRASS_LOCATION is created based on the --epsg input and temporary locations are created for each DEM input specified by the --raster input. All DEMs are projected into GRASS_LOCATION and now a file called GRASS_LOCATION.zip exists which contains all of the DEMs patched into one larger DEM and uses a correct stateplane datum, specified by the --epsg input.
@@ -106,11 +106,11 @@ if options.createlocation == "yes":
     createmethod=options.createmethod
     vunitconv=options.vunitconv
     if ',' in rastername:
-	rastername = rastername.split(',') #If multiple input rasters exist, the input string is split into a list.
+        rastername = rastername.split(',') #If multiple input rasters exist, the input string is split into a list.
     else:
-	rasternamestr = rastername
-	rastername = []
-	rastername.append(rasternamestr) #If one input raster exists, this is added to a list of length=1.
+        rasternamestr = rastername
+        rastername = []
+        rastername.append(rasternamestr) #If one input raster exists, this is added to a list of length=1.
 
     #Working with GRASS without starting it explicitly; using metadata only.
     #This works assuming a linux operating system. If using a different operating system, see the website below.
@@ -120,9 +120,9 @@ if options.createlocation == "yes":
     p = subprocess.Popen(startcmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = p.communicate()
     if p.returncode != 0:
-	    print >>sys.stderr, 'ERROR: %s' % err
-	    print >>sys.stderr, "ERROR: Cannot find GRASS GIS 7 start script (%s)" % startcmd
-	    sys.exit(-1)
+        print >>sys.stderr, 'ERROR: %s' % err
+        print >>sys.stderr, "ERROR: Cannot find GRASS GIS 7 start script (%s)" % startcmd
+        sys.exit(-1)
     gisbase = out.strip('\n')
     os.environ['GISBASE'] = gisbase
     gpydir = os.path.join(gisbase, "etc", "python")
@@ -134,25 +134,25 @@ if options.createlocation == "yes":
     cwd = os.getcwd()
     location_path = os.path.join(cwd,location)
     if createmethod == 'existing':
-	startcmd = grass7bin + ' -c ' + rastername[0] + ' -e ' + location_path #Used for creating a location based on a raster
+        startcmd = grass7bin + ' -c ' + rastername[0] + ' -e ' + location_path #Used for creating a location based on a raster
     else:
-	startcmd = grass7bin + ' -c epsg:' + myepsg + ' -e ' + location_path #Used for creating a location based on an EPSG cod
+        startcmd = grass7bin + ' -c epsg:' + myepsg + ' -e ' + location_path #Used for creating a location based on an EPSG cod
     p = subprocess.Popen(startcmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = p.communicate()
     if p.returncode != 0:
-	print >>sys.stderr, 'ERROR: %s' % err
-	print >>sys.stderr, 'ERROR: Cannot generate location (%s)' % startcmd
-	sys.exit(-1)
+        print >>sys.stderr, 'ERROR: %s' % err
+        print >>sys.stderr, 'ERROR: Cannot generate location (%s)' % startcmd
+        sys.exit(-1)
     else:
-	print 'Created location %s' % location_path
+        print('Created location %s' % location_path)
 
     os.environ['GISDBASE'] = gisdb
     path = os.getenv('LD_LIBRARY_PATH')
     dir = os.path.join(gisdb, 'lib')
     if path:
-	path = dir + os.pathsep + path
+        path = dir + os.pathsep + path
     else:
-	path = dir
+        path = dir
     os.environ['LD_LIBRARY_PATH'] = path
     os.environ['LANG'] = 'en_US'
     os.environ['LOCALE'] = 'C'
@@ -165,73 +165,73 @@ if options.createlocation == "yes":
 
     #For multiple DEM inputs:
     if len(rastername) > 1:
-	outList = []
-	if resolution != 'align':
-       	    for s in range(len(rastername)):#Iterating over each DEM
-		#Import each DEM into GRASS_LOCATION
-		grass.run_command('r.import',
-		    overwrite=True,
-		    input=rastername[s],
-		    output='ras'+str(s),
-		    resolution='value',
-		    resolution_value=resolution,
-		    resample='bilinear',
-		    extent='input')
-		outList.append('ras'+str(s))#Create a list of rasters in GRASS_LOCATION to be patched together
-	else:
-	    for s in range(len(rastername)):#Iterating over each DEM
-		#Import each DEM into GRASS_LOCATION
-		grass.run_command('r.import',
-		    overwrite=True,
-		    input=rastername[s],
-		    output='ras'+str(s))
-		rastInfo=grass.parse_command('r.info',map='ras'+str(s),flags='g',delimiter='=')
-		nsres=rastInfo['nsres']
-		ewres=rastInfo['ewres']
-		print "North/South resolution of raster #{0}: {1}".format(s,nsres)
-	    print "Warning: if DEM raster resolutions do not match, the aggregate DEM resolution will match the resolution of the first input raster (raster #0 above)."
-	#Set the computational region of GRASS_LOCATION based on the extents of the DEMs
-	grass.run_command('g.region',
-	    raster=outList,
-	    quiet=True)
-	#Patch all dems into one large DEM named 'dem'
-	grass.run_command('r.patch',
-	    input=outList,
-	    output='dem',
-	    overwrite=True,
-	    quiet=True)
-	#Remove each individual smaller DEM from GRASS_LOCATION
-	grass.run_command('g.remove',
-	    type='raster',
-	    name=outList,
-	    flags='f',
-	    quiet=True)
+        outList = []
+        if resolution != 'align':
+            for s in range(len(rastername)):#Iterating over each DEM
+                #Import each DEM into GRASS_LOCATION
+                grass.run_command('r.import',
+                    overwrite=True,
+                    input=rastername[s],
+                    output='ras'+str(s),
+                    resolution='value',
+                    resolution_value=resolution,
+                    resample='bilinear',
+                    extent='input')
+                outList.append('ras'+str(s))#Create a list of rasters in GRASS_LOCATION to be patched together
+        else:
+            for s in range(len(rastername)):#Iterating over each DEM
+                #Import each DEM into GRASS_LOCATION
+                grass.run_command('r.import',
+                    overwrite=True,
+                    input=rastername[s],
+                    output='ras'+str(s))
+                rastInfo=grass.parse_command('r.info',map='ras'+str(s),flags='g',delimiter='=')
+                nsres=rastInfo['nsres']
+                ewres=rastInfo['ewres']
+                print("North/South resolution of raster #{0}: {1}".format(s,nsres))
+            print("Warning: if DEM raster resolutions do not match, the aggregate DEM resolution will match the resolution of the first input raster (raster #0 above).")
+        #Set the computational region of GRASS_LOCATION based on the extents of the DEMs
+        grass.run_command('g.region',
+            raster=outList,
+            quiet=True)
+        #Patch all dems into one large DEM named 'dem'
+        grass.run_command('r.patch',
+            input=outList,
+            output='dem',
+            overwrite=True,
+            quiet=True)
+        #Remove each individual smaller DEM from GRASS_LOCATION
+        grass.run_command('g.remove',
+            type='raster',
+            name=outList,
+            flags='f',
+            quiet=True)
     #For one DEM input:
     elif len(rastername) == 1:
-	#For a specified or default resolution:
-	if resolution != 'align':
-	    grass.run_command('r.import',
-		overwrite=True,
-		input=rastername[0],
-		output='dem',
-		resolution='value',
-		resolution_value=resolution,
-		resample='bilinear',
-		extent='input')
-	else:
-	    #Import and automatically reproject the raster
-	    grass.run_command('r.import',
-		overwrite=True,
-		input=str(rastername[0]),
-		output='dem',
-		extent='input',
-		resolution='estimated')
-	#Set the resolution and computational region to align with the DEM
-	grass.run_command('g.region',
-	    raster='dem')
+        #For a specified or default resolution:
+        if resolution != 'align':
+            grass.run_command('r.import',
+                overwrite=True,
+                input=rastername[0],
+                output='dem',
+                resolution='value',
+                resolution_value=resolution,
+                resample='bilinear',
+                extent='input')
+        else:
+            #Import and automatically reproject the raster
+            grass.run_command('r.import',
+                overwrite=True,
+                input=str(rastername[0]),
+                output='dem',
+                extent='input',
+                resolution='estimated')
+        #Set the resolution and computational region to align with the DEM
+        grass.run_command('g.region',
+            raster='dem')
 
     else:
-	print "Please enter the raster name using the '--raster' option."
+        print("Please enter the raster name using the '--raster' option.")
     #Vertical unit conversion
     #Convert meters to feet
     if vunitconv=="m2ft":
@@ -242,7 +242,7 @@ if options.createlocation == "yes":
             overwrite=True,
             quiet=True)
         grass.run_command('g.remove',flags="f",type="all",name="demPreConv")
-        print "Vertical units converted from meters to feet."
+        print("Vertical units converted from meters to feet.")
     #Convert feet to meters
     elif vunitconv=="ft2m":
         grass.run_command('g.rename',raster="dem,demPreConv")
@@ -252,11 +252,11 @@ if options.createlocation == "yes":
             overwrite=True,
             quiet=True)
         grass.run_command('g.remove',flags="f",type="all",name="demPreConv")
-        print "Vertical units converted from feet to meters."
+        print("Vertical units converted from feet to meters.")
 
     os.system('zip -rq GRASS_LOCATION.zip GRASS_LOCATION')#Zip GRASS_LOCATION
     os.system('rm -fr GRASS_LOCATION')#Remove unzipped GRASS_LOCATION folder
-    print "Finished creating GRASS Location after %d seconds. GRASS_LOCATION.zip is now ready for use with r.grow extrapolation." % (time.time()-time0)
+    print("Finished creating GRASS Location after %d seconds. GRASS_LOCATION.zip is now ready for use with r.grow extrapolation." % (time.time()-time0))
     sys.exit(0)#Exits after --createlocation finishes creating GRASS_LOCATION
 
 if options.createcostsurface == "yes":
@@ -558,10 +558,10 @@ if options.createcostsurface == "yes":
     sys.exit(0)
 
 
-# jgf: If there are no command line arguments, trigger the menu to 
-# collect input parameters interactively. Otherwise, use the command 
+# jgf: If there are no command line arguments, trigger the menu to
+# collect input parameters interactively. Otherwise, use the command
 # line arguments.
-if options.storm == "null" : 
+if options.storm == "null" :
     print (30 * '-')
     print ("   M A I N - M E N U")
     print (30 * '-')
@@ -611,17 +611,17 @@ if options.storm == "null" :
 else:
     filetype=options.filetype
     filename=options.filename
-    polytype=options.polytype 
+    polytype=options.polytype
     viztype=options.viztype
     l=options.l
     subplots=options.subplots
     lonlatbuffer=float(options.lonlatbuffer)
-    storm=options.storm      
+    storm=options.storm
     palettename=options.palettename
     outputfile=options.outputfile
     logodims = options.logodims
     logounits = options.logounits
-    logofile=options.logofile    
+    logofile=options.logofile
     contourlevels=options.contourlevels
     contourrange=options.contourrange
     specifiedticks=options.specifiedticks
@@ -640,7 +640,7 @@ if grow != "no":
     viztype = "shapefile"
     outputfile = "kalpana_out"
 
-# 
+#
 # jgf: Change the input values to something more intuitive if necessary
 #print 'INFO: storm is ' + storm
 legacyPolyTypeMapping = { 'A' : 'polyline', 'B' : 'polygon' }
@@ -650,7 +650,7 @@ if polytype in legacyPolyTypeMapping.keys():
 legacyVizTypeMapping = { 'X' : 'shapefile', 'Y' : 'kmz' }
 if viztype in legacyVizTypeMapping.keys():
     viztype = legacyVizTypeMapping[viztype]
-#print 'INFO: viztype is ' + viztype    
+#print 'INFO: viztype is ' + viztype
 legacySubplotsMapping = { 'Y' : 'yes', 'N' : 'no' }
 if subplots in legacySubplotsMapping.keys():
     subplots = legacySubplotsMapping[subplots]
@@ -660,43 +660,43 @@ if filetype in legacyFileTypeMapping.keys():
     filetype = legacyFileTypeMapping[filetype]
 #print 'INFO: filetype is ' + filetype
 #
-# jgf: designate certain files as time varying 
+# jgf: designate certain files as time varying
 timeVaryingFiles = ['fort.63.nc', 'fort.74.nc', 'swan_HS.63.nc', 'swan_TPS_63.nc', 'swan_TMM10.63.nc']
 if filetype in timeVaryingFiles: print "INFO: This file is time varying."
 #
-# jgf: Check for conflicts between input parameters. 
-if viztype == 'kmz' and filetype in timeVaryingFiles: 
+# jgf: Check for conflicts between input parameters.
+if viztype == 'kmz' and filetype in timeVaryingFiles:
     print "ERROR: Cannot produce Google Earth (kmz) output for time varying files."
     exit
 #
-# DEFINING BINS FOR KML CREATION 
+# DEFINING BINS FOR KML CREATION
 if viztype ==  'kmz':
     gdomain = [50,5,-60,-100]
     local = map(float,l.split())
     bins = []
     bins.append([local[1],gdomain[1],gdomain[2],gdomain[3]])
-    north = local[1] + 0.5  
+    north = local[1] + 0.5
     south = local[1]
-    while (north <= local[0]):       
+    while (north <= local[0]):
         bins.append([north,south,gdomain[2],gdomain[3]])
         south = north
-        north = north +0.5             
+        north = north +0.5
     bins.append([gdomain[0],local[0],gdomain[2],gdomain[3]])
     #print bins
 #
 fileTypesColorBarNames = { 'maxele.63.nc' : 'Colorbar-water-levels.png', 'swan_HS_max.63.nc' : 'Colorbar-wave-heights.png', 'maxwvel.63.nc' : 'Colorbar-wind-speeds.png', 'swan_TPS_max.63.nc' : 'Colorbar-wave-periods.png', 'bathytopo' : 'Colorbar-bathymetry.png' }
 fileTypesNetCDFVarNames = { 'bathytopo' : 'depth', 'maxele.63.nc' : 'zeta_max', 'maxwvel.63.nc' : 'wind_max', 'swan_HS_max.63.nc' : 'swan_HS_max', 'fort.63.nc' : 'zeta', 'fort.74.nc' : [ 'windx', 'windy' ], 'swan_HS.63.nc' : 'swan_HS', 'swan_TPS_max.63.nc' : 'swan_TPS_max', 'swan_TPS.63.nc' : 'swan_TPS', 'swan_TMM10.63.nc' : 'swan_TMM10' }#######Step can be surpassed in sample maxele if zeta_max is changed to maxele after key 'maxele.63.nc'
-fileTypesDefaultPaletteFileNames = { 'bathytopo' : 'mesh-bathy.pal', 'maxele.63.nc' : 'water-level.pal', 'maxwvel.63.nc' : 'wind-speed.pal', 'swan_HS_max.63.nc' : 'wavht.pal', 'swan_TPS_max.63.nc' : 'wavht.pal' }       
+fileTypesDefaultPaletteFileNames = { 'bathytopo' : 'mesh-bathy.pal', 'maxele.63.nc' : 'water-level.pal', 'maxwvel.63.nc' : 'wind-speed.pal', 'swan_HS_max.63.nc' : 'wavht.pal', 'swan_TPS_max.63.nc' : 'wavht.pal' }
 fileTypesKMLFolderNames = { 'bathytopo' : 'Bathymetry', 'maxele.63.nc' : 'Maximum-Water-Levels', 'maxwvel.63.nc' : 'Maximum Wind Velocity', 'swan_HS_max.63.nc' : 'Maximum-Wave-Heights', 'swan_TPS_max.63.nc' : 'Maximum-Wave-Period' }
-fileTypesDefaultOutputShapeFileNames = { 'bathytopo' : 'mesh-bathy', 'maxele.63.nc' : 'water-level', 'maxwvel.63.nc' : 'wind-speed','swan_HS_max.63.nc' : 'wave-height', 'fort.63.nc' : 'nodalelev'+'_'+ polytype + '_'+ str(storm), 'fort.74.nc' : 'nodalwvel'+'_'+ polytype + '_'+ str(storm), 'swan_HS.63.nc' : 'nodalwavht'+'_'+ polytype + '_'+ str(storm), 'swan_TPS_max.63.nc' : 'wave-period', 'swan_TPS.63.nc' :  'nodalpeakpd'+'_'+polytype+'_'+str(storm), 'swan_TMM10.63.nc' : 'avgpd'+'_'+polytype+'_'+str(storm) }    
+fileTypesDefaultOutputShapeFileNames = { 'bathytopo' : 'mesh-bathy', 'maxele.63.nc' : 'water-level', 'maxwvel.63.nc' : 'wind-speed','swan_HS_max.63.nc' : 'wave-height', 'fort.63.nc' : 'nodalelev'+'_'+ polytype + '_'+ str(storm), 'fort.74.nc' : 'nodalwvel'+'_'+ polytype + '_'+ str(storm), 'swan_HS.63.nc' : 'nodalwavht'+'_'+ polytype + '_'+ str(storm), 'swan_TPS_max.63.nc' : 'wave-period', 'swan_TPS.63.nc' :  'nodalpeakpd'+'_'+polytype+'_'+str(storm), 'swan_TMM10.63.nc' : 'avgpd'+'_'+polytype+'_'+str(storm) }
 #
 # use the default file name if the file name was not provided
-if filename == 'null': 
-   filename = filetype
+if filename == 'null':
+    filename = filetype
 #
 # use the default palette file unless a different palette file was requested
 if palettename == 'null':
-   palettename = fileTypesDefaultPaletteFileNames[filetype]
+    palettename = fileTypesDefaultPaletteFileNames[filetype]
 #
 if units == 'english':
     fileTypesDefaultContourLevels = { 'bathytopo' : [-40,-30,-20,-10,-5,0,2,4,6,8,10,15,20,30,40,50,100,200,300,400,500,550], 'maxele.63.nc' : [0,1,2,3,4,5,6,7,8], 'maxwvel.63.nc' : [0,10,20,30,40,50,60,70,80,90], 'swan_HS_max.63.nc' : [0,4,8,12,16,20,24,28,32], 'fort.63.nc' : [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5], 'fort.74.nc' : [0,10,20,30,40,50,60,70,80,90], 'swan_HS.63.nc' : [0,4,8,12,16,20,24,28,32], 'swan_TPS_max.63.nc' : [ 1, 2, 3, 4, 5, 6, 8, 10 ], 'swan_TPS.63.nc' : [ 1, 2, 3, 4, 5, 6, 8, 10 ], 'swan_TMM10.63.nc' : [ 1, 2, 3, 4, 5, 6, 8, 10 ] }
@@ -704,7 +704,7 @@ else:
     # default contour range for si units
     fileTypesDefaultContourLevels = { 'bathytopo' : [-40,-30,-20,-10,-5,0,2,4,6,8,10,15,20,30,40,50,100,200,300,400,500,550], 'maxele.63.nc' : [0,0.25,0.5,0.75,1,1.25,1.5,1.75,2.0,2.25,2.5,2.75,3,3.25,3.5,3.75,4,4.25], 'maxwvel.63.nc' : [0,5,10,15,20,25,30,35,40,45], 'swan_HS_max.63.nc' : [0,1,2,3,4,5,6,7,8], 'fort.63.nc' : [-3, -2.5, -2.0, -1.5, -1.0, -0.5, 0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0], 'fort.74.nc' : [0,5,10,15,20,25,30,35,40,45], 'swan_HS.63.nc' : [0,1, 2, 3, 4, 5, 6, 7, 8], 'swan_TPS_max.63.nc' : [ 1, 2, 3, 4, 5, 6, 8, 10 ], 'swan_TPS.63.nc' : [ 1, 2, 3, 4, 5, 6, 8, 10 ], 'swan_TMM10.63.nc' : [ 1, 2, 3, 4, 5, 6, 8, 10 ] }
 #
-# ROUTINE TO CALCULATE CONTOUR LEVELS 
+# ROUTINE TO CALCULATE CONTOUR LEVELS
 def generateContourLevelsFromMinMaxAndIncrement(minl,maxl,inc):
     contourLevels = []
     clevel = minl
@@ -740,7 +740,7 @@ else:
 #
 # Read the data
 nc = netCDF4.Dataset(filename).variables
-if filetype not in timeVaryingFiles: 
+if filetype not in timeVaryingFiles:
     var = nc[fileTypesNetCDFVarNames[filetype]][:]
 #
 # jgf: designate certain files as needing to have -99999 values filled in
@@ -757,7 +757,7 @@ fileTypesEnglishUnitsConversions = { 'bathytopo' : 3.2808399, 'maxele.63.nc' : 3
 #
 # jgf: Convert units if english units were specified
 if units == 'english':
-    if filetype not in timeVaryingFiles : 
+    if filetype not in timeVaryingFiles :
         var = np.multiply(float(fileTypesEnglishUnitsConversions[filetype]),var)
     fileTypesUnitLabels = { 'maxele.63.nc' : 'Water Level (feet above ' + datumlabel + ')', 'fort.63.nc' : 'Water Level (feet above ' + datumlabel + ')', 'swan_HS_max.63.nc' : 'Wave Height (feet)', 'maxwvel.63.nc' : 'Wind Speed at Ground Level (mph)', 'swan_TPS_max.63.nc' : 'Peak Wave Period (s)', 'bathytopo' : 'Bathymetry (ft below ' + datumlabel + ')'}
 else:
@@ -765,23 +765,23 @@ else:
 #
 # jgf: limit data values based on the contouring range for kmz
 if filetype not in timeVaryingFiles:
-    np.place(var,var > max(levels),max(levels)-0.01)   
-    np.place(var,(-100 < var) & (var < min(levels)),min(levels)) 
+    np.place(var,var > max(levels),max(levels)-0.01)
+    np.place(var,(-100 < var) & (var < min(levels)),min(levels))
 #
 timestep = 'time'
 #
-# Extracting longitude and latitude of all mesh nodes 
+# Extracting longitude and latitude of all mesh nodes
 lon = nc['x'][:]
 lat = nc['y'][:]
 #
-# Extracting element description details (list of 3 vertices specified 
-# for each triangle denoted by index number) from the output file 
+# Extracting element description details (list of 3 vertices specified
+# for each triangle denoted by index number) from the output file
 nv = nc['element'][:,:] -1
 #
 # read datum conversion raster
-def readraster(rasterfile):   
+def readraster(rasterfile):
     f = open(rasterfile)
-    deltas = np.empty((703,803))  
+    deltas = np.empty((703,803))
     s = f.readline()
     for i in range(703):
         for j in range(803):
@@ -790,11 +790,11 @@ def readraster(rasterfile):
     f.close()
     return deltas
 #
-# convert datum from MSL to NAVD-88 by interpolating from raster    
+# convert datum from MSL to NAVD-88 by interpolating from raster
 def interpolate(xres, yres):
-    xmin, xmax, ymin, ymax = -79.11, -75.10, 33.355, 36.865 
+    xmin, xmax, ymin, ymax = -79.11, -75.10, 33.355, 36.865
     ##coordinates defining rectangle of raster
-    for i in range(len(var)):   
+    for i in range(len(var)):
         if xmin <= lon[i] <= xmax and ymin <= lat[i] <= ymax:
             col1 = int((lon[i] - xmin)//xres)
             row1 = int((ymax - lat[i])//yres)
@@ -805,11 +805,11 @@ def interpolate(xres, yres):
             x2 = x1 + xres
             y2 = y1 - yres
             if lat[i] == y2 and lon[i] == x1:
-                avgdelta = deltas[row2,col1] 
+                avgdelta = deltas[row2,col1]
             elif lat[i] == y2 and lon[i] == x2:
-                avgdelta = deltas[row2,col2] 
+                avgdelta = deltas[row2,col2]
             elif lat[i] == y1 and lon[i] == x1:
-                avgdelta = deltas[row1,col1]                
+                avgdelta = deltas[row1,col1]
             elif lat[i] == y1 and lon[i] == x2:
                 avgdelta = deltas[row1,col2]
             else:
@@ -817,16 +817,16 @@ def interpolate(xres, yres):
                 dlr = ((lon[i] - x2)**2 + (lat[i] - y2)**2)**0.5
                 dul = ((lon[i] - x1)**2 + (lat[i] - y1)**2)**0.5
                 dur = ((lon[i] - x2)**2 + (lat[i] - y1)**2)**0.5
-                ##dll=distance to lower left corner of raster cell, etc.                
+                ##dll=distance to lower left corner of raster cell, etc.
                 if lat[i] == y1:
                     avgdelta = (deltas[row1,col1]/dul + deltas[row1,col2]/dur)/(1/dul + 1/dur)
                 elif lat[i] == y2:
                     avgdelta = (deltas[row2,col1]/dll + deltas[row2,col2]/dlr)/(1/dll + 1/dlr)
-                elif lon[i] == x1: 
+                elif lon[i] == x1:
                     avgdelta = (deltas[row1,col1]/dul + deltas[row2,col1]/dll)/(1/dul + 1/dll)
                 elif lon[i] == x2:
                     avgdelta = (deltas[row1,col2]/dur + deltas[row2,col2]/dlr)/(1/dur + 1/dlr)
-                else:                    
+                else:
                     avgdelta = (deltas[row2,col1]/dll + deltas[row2,col2]/dlr + deltas[row1,col1]/dul + deltas[row1,col2]/dur)/(1/dll + 1/dlr + 1/dul + 1/dur)
         else:
             avgdelta = 0
@@ -834,23 +834,23 @@ def interpolate(xres, yres):
     return var
 #
 if datumconv == 'yes':
-    time1 = time.time()    
+    time1 = time.time()
     deltas = readraster(datumtextfile)
     var = interpolate(0.005,0.005)
     print 'Time to run datum conversion: ', time.time() - time1
 #
-# Extracting time step information from the output file 
+# Extracting time step information from the output file
 time_var= nc['time']
 
 #
-# startdate specifies start time of ADCIRC computations 
+# startdate specifies start time of ADCIRC computations
 startdate = time_var.units
 #
-# Converting the time step information into datetime objects 
+# Converting the time step information into datetime objects
 dtime = netCDF4.num2date(time_var[:],startdate)
 
 #
-# Converting datetime objects to string format - YYMMDDHHMMSS 
+# Converting datetime objects to string format - YYMMDDHHMMSS
 a = []
 for j in dtime:
     a.append(j.strftime("%Y%m%d%H%M%S"))
@@ -905,13 +905,13 @@ def createSubmeshWithinSpecifiedLatLonBox(LatN,LatS,LongE,LongW,lonlatbuffer):
             locallat.append(lat[i])
             locallon.append(lon[i])
             varlocal.append(var[i])
-                
+
     for i in range(len(nv)):
         if includeele2[i] == 1:
-            localelem.append((global2local[nv[i][0]],global2local[nv[i][1]],global2local[nv[i][2]]))                   
+            localelem.append((global2local[nv[i][0]],global2local[nv[i][1]],global2local[nv[i][2]]))
     return locallat,locallon,localelem,varlocal
 #
-# READING IN A COLOR PALETTE FILE (.PAL) 
+# READING IN A COLOR PALETTE FILE (.PAL)
 linenum = 0
 palette = dict()
 palette['value'] = []
@@ -919,7 +919,7 @@ palette['r'] = []
 palette['g'] = []
 palette['b'] = []
 if viztype ==  'kmz':
-    with open(palettename,'r') as file:      
+    with open(palettename,'r') as file:
         for line in file:
             linenum = linenum + 1
             if linenum >= 5:
@@ -929,7 +929,7 @@ if viztype ==  'kmz':
                 palette['g'].append(float(a[2]))
                 palette['b'].append(float(a[3]))
 #
-# Interpolating the color at each contour level from the palette 
+# Interpolating the color at each contour level from the palette
 def interpolateContourLevels(contourLevels,palette):
     contourPalette = dict()
     contourPalette['value'] = []
@@ -960,11 +960,11 @@ def interpolateContourLevels(contourLevels,palette):
         RGB.append((contourPalette['r'][i],contourPalette['g'][i],contourPalette['b'][i]))
     return RGB
 #
-# TO CONVERT FROM RGB COLOR CODE TO HEX COLOR CODE 
+# TO CONVERT FROM RGB COLOR CODE TO HEX COLOR CODE
 def rgb_to_hex(rgb):
     return '#%02x%02x%02x' % rgb
 #
-# CREATE COLOR BAR FOR THE CONTOUR PLOT 
+# CREATE COLOR BAR FOR THE CONTOUR PLOT
 def createColorBar(hexlist,levels,ticks):
     fig = pplot.figure(figsize = (1.5,8))
     ax = fig.add_axes([0.3,0.05,0.3,0.9])
@@ -975,7 +975,7 @@ def createColorBar(hexlist,levels,ticks):
     matplotlib.pyplot.savefig(fileTypesColorBarNames[filetype])
 
 #
-# CREATING SCREEN OVERLAYS (COLOR BAR AND LOGO) FOR THE KML FILE 
+# CREATING SCREEN OVERLAYS (COLOR BAR AND LOGO) FOR THE KML FILE
 def createScreenOverlaysForKML(kml,logofile,logodims,logounits):
     screen1 = kml.newscreenoverlay(name='Colorbar')
     screen1.icon.href = fileTypesColorBarNames[filetype]
@@ -988,14 +988,14 @@ def createScreenOverlaysForKML(kml,logofile,logodims,logounits):
     screen1.size.xunits = simplekml.Units.fraction
     screen1.size.yunits = simplekml.Units.fraction
 
-    if logofile != 'null' and logofile != 'none': 
+    if logofile != 'null' and logofile != 'none':
         screen2 = kml.newscreenoverlay(name='logo')
         screen2.icon.href = logofile
         screen2.overlayxy = simplekml.OverlayXY(x=0,y=1,xunits=simplekml.Units.fraction,
                                        yunits=simplekml.Units.fraction)
         screen2.screenxy = simplekml.ScreenXY(x=0,y=1,xunits=simplekml.Units.fraction,
                                         yunits=simplekml.Units.fraction)
-        if logounits == 'fraction':     
+        if logounits == 'fraction':
             screen2.size.xunits = simplekml.Units.fraction
             screen2.size.yunits = simplekml.Units.fraction
         if logounits == 'pixel':
@@ -1009,7 +1009,7 @@ def createScreenOverlaysForKML(kml,logofile,logodims,logounits):
             screen2.size.x = float(a[0])
             screen2.size.y = float(a[1])
 #
-# GENERAL REQUIREMENTS FOR SHAPE FILES AND KML FILES 
+# GENERAL REQUIREMENTS FOR SHAPE FILES AND KML FILES
 if viztype ==  'kmz':
     ## CREATING A SIMPLEKML OBJECT ##
     kml = simplekml.Kml()
@@ -1031,7 +1031,7 @@ else:
 # Triangulating the entire domain ##
 tri = matplotlib.tri.Triangulation(lon,lat,triangles=nv)
 #
-# geoms is an ordered dictionary which stores the details of geometry 
+# geoms is an ordered dictionary which stores the details of geometry
 #of the polygons which describe the individual contour levels #
 geoms = collections.OrderedDict()
 
@@ -1050,16 +1050,16 @@ def pointsInsidePoly(points, polygon):
     return p.contains_points(points)
 
 def reverseGeometry(p):
-  return np.flipud(p)
+    return np.flipud(p)
 
 ## To calculate the signed area of an irregular polyon ##
 def signedArea(ring):
-    """Return the signed area enclosed by a ring in linear time using the 
+    """Return the signed area enclosed by a ring in linear time using the
     algorithm at: https://web.archive.org/web/20080209143651/http://cgafaq.info:80/wiki/Polygon_Area.
     """
     v2 = np.roll(ring, -1, axis=0)
     return np.cross(ring, v2).sum() / 2.0
-     
+
 ## CREATING CONTOUR AND EXTRACTING LINESTRINGS/POLYGONS FOR EVERY TIMESTEP ##
 for i in range(len(time_var)):
     print "Time step " + str(i)
@@ -1078,12 +1078,12 @@ for i in range(len(time_var)):
     if viztype ==  'kmz' and subplots == 'yes' and polytype == 'polygon':
         ## Creating polygon KML files by combining contour plots of subdomains specified in bins ##
         for v in bins:
-            ## Printing the long/lat box ##       
+            ## Printing the long/lat box ##
             #print 'bin is ' + str(v)
             localy = []
             localx =[]
             localelements = []
-            ## Extracting local mesh for each long/latbox ## 
+            ## Extracting local mesh for each long/latbox ##
             localy,localx,localelements,localvar = createSubmeshWithinSpecifiedLatLonBox(v[0],v[1],v[2],v[3],lonlatbuffer)
             if localelements ==[]:
                 #print localelements
@@ -1093,23 +1093,23 @@ for i in range(len(time_var)):
             ## Plotting filled contour for each local mesh ##
             print 'INFO: Plotting filled contour for each local mesh.'
             #print 'localvar is ' + str(localvar)
-            contour = pplot.tricontourf(tri, localvar,levels=levels,shading='faceted')          
-            m = 0           
+            contour = pplot.tricontourf(tri, localvar,levels=levels,shading='faceted')
+            m = 0
             for colli,coll in enumerate(contour.collections):
                 vmin,vmax = contour.levels[colli:colli+2]
                 #print 'Level %d' %m
                 #print vmin,vmax
-                ## Extracting the path objects corresponding to each contour level ##         
+                ## Extracting the path objects corresponding to each contour level ##
                 for p in coll.get_paths():
                     p.simplify_threshold = 0.0
                     ## converting each path object to a set of polygons  - polys ##
-                    ## Deleting any polygons having less than 3 vertices ## 
-                    polys = [g for g in p.to_polygons() if g.shape[0] >=3] 
+                    ## Deleting any polygons having less than 3 vertices ##
+                    polys = [g for g in p.to_polygons() if g.shape[0] >=3]
                     if len(polys)>0:
                         ## polys is converted to a list of tuples (polys1). Each tuple representing a polygon ##
                         polys1 = []
                         for g in polys:
-                             polys1.append(list(map(tuple,g)))   
+                            polys1.append(list(map(tuple,g)))
                         inner = []
                         outer = []
                         ## Finding out which of the polygons within polys1 are outer and inner polygons (or holes)
@@ -1123,7 +1123,7 @@ for i in range(len(time_var)):
                             else:
                                 inner.append(list(polys1[i].coords))
                         ## Need to identify which are the inner polygons (from inner) which fall inside each of the outer polygons  (from outer).
-                        ## topo = {<index of Outer Polygon 1 in outer>:<index of polygon in inner which falls in this outer polygon>, <index of Outer Polygon 2 in outer>: <.......>, ...}         
+                        ## topo = {<index of Outer Polygon 1 in outer>:<index of polygon in inner which falls in this outer polygon>, <index of Outer Polygon 2 in outer>: <.......>, ...}
                         topo = {}
                         for i in range(len(outer)):
                             topo[i] = []
@@ -1152,7 +1152,7 @@ for i in range(len(time_var)):
                 #print m
                 store[m].style.polystyle.color = simplekml.Color.hex(hexColorsList[m][1:])
                 store[m].style.polystyle.outline = 0
-                m = m+1               
+                m = m+1
     else:
         ## Writing shapefiles/KML files  for entire domain ##
         ## Writing KML files for entire domain in one step may not allow polygons to be rendered correctly ##
@@ -1162,7 +1162,7 @@ for i in range(len(time_var)):
                 var = nc[fileTypesNetCDFVarNames[filetype]][i][:]
                 # convert units if necessary
                 if units == 'english':
-                   var = np.multiply(float(fileTypesEnglishUnitsConversions[filetype]),var)
+                    var = np.multiply(float(fileTypesEnglishUnitsConversions[filetype]),var)
             contour = pplot.tricontour(tri, var,levels=levels)
             geoms[time_var[i]] = []
             print time_var[i]
@@ -1179,91 +1179,91 @@ for i in range(len(time_var)):
                 m = m + 1
         elif polytype == 'polygon':
             ## To create POLYGON files ##
-                    if filetype in timeVaryingFiles:
-                        var = nc[fileTypesNetCDFVarNames[filetype]][i][:]
-                    # construct mask
-                    if filetype in requireFill and type(var) == "MaskedArray" and var.mask.any():
-                        point_mask_indices = np.where(var.mask)
-                        tri_mask = np.any(np.in1d(nv,point_mask_indices).reshape(-1,3),axis=1)
-                        tri.set_mask(tri_mask)                
-                    # convert units if necessary
-                    if filetype in timeVaryingFiles:
-                        if units == 'english':
-                            var = np.multiply(float(fileTypesEnglishUnitsConversions[filetype]),var)
-                        # limit range to the contour range
-                        np.place(var,var > max(levels),max(levels)-0.01)   
-                        np.place(var,(-100 < var) & (var < min(levels)),min(levels)) 
-                    contour = pplot.tricontourf(tri, var,levels=levels)
-                    geoms[time_var[i]] = []
-                    m = 0
-                    l = len(contour.collections)
-                    for colli,coll in enumerate(contour.collections):
-                        vmin,vmax = contour.levels[colli:colli+2]
-                        if viztype ==  'kmz':
-                           multipol = fol.newmultigeometry(name= 'Level' + str(m))                         
-                        for p in coll.get_paths():
-                            p.simplify_threshold = 0.0
-                            # 
-                            # Removing polygons which have less than three 
-                            # coordinates to describe its boundary
-                            polys = [g for g in p.to_polygons() if g.shape[0] >=3] 
-                            #
-                            # Extracting the vertices of each of the paths 
-                            # corrsponding to each contour level and wrapping 
-                            # them up in a shapely Polygon object 
-                            #
-                            # The geometry information with the contour 
-                            # levels is stored in geoms
-                            outer,inner = classifyPolygons(polys)
-                            if len(inner)>0:
-                                inner_points = [pts[0] for pts in inner]
-                            overall_inout = np.zeros((len(inner),),dtype = np.bool)
-                            
-                            for out in outer:
-                                if len(inner) > 0:
-                                    inout = pointsInsidePoly(inner_points,out)
-                                    overall_inout = np.logical_or(overall_inout, inout)
-                                    out_inner = [g for f, g in enumerate(inner) if inout[f]]
-                                    poly = Polygon(out, out_inner)
-                                else:
-                                    poly = Polygon(out)
+            if filetype in timeVaryingFiles:
+                var = nc[fileTypesNetCDFVarNames[filetype]][i][:]
+            # construct mask
+            if filetype in requireFill and type(var) == "MaskedArray" and var.mask.any():
+                point_mask_indices = np.where(var.mask)
+                tri_mask = np.any(np.in1d(nv,point_mask_indices).reshape(-1,3),axis=1)
+                tri.set_mask(tri_mask)
+            # convert units if necessary
+            if filetype in timeVaryingFiles:
+                if units == 'english':
+                    var = np.multiply(float(fileTypesEnglishUnitsConversions[filetype]),var)
+                # limit range to the contour range
+                np.place(var,var > max(levels),max(levels)-0.01)
+                np.place(var,(-100 < var) & (var < min(levels)),min(levels))
+            contour = pplot.tricontourf(tri, var,levels=levels)
+            geoms[time_var[i]] = []
+            m = 0
+            l = len(contour.collections)
+            for colli,coll in enumerate(contour.collections):
+                vmin,vmax = contour.levels[colli:colli+2]
+                if viztype ==  'kmz':
+                    multipol = fol.newmultigeometry(name= 'Level' + str(m))
+                for p in coll.get_paths():
+                    p.simplify_threshold = 0.0
+                    #
+                    # Removing polygons which have less than three
+                    # coordinates to describe its boundary
+                    polys = [g for g in p.to_polygons() if g.shape[0] >=3]
+                    #
+                    # Extracting the vertices of each of the paths
+                    # corrsponding to each contour level and wrapping
+                    # them up in a shapely Polygon object
+                    #
+                    # The geometry information with the contour
+                    # levels is stored in geoms
+                    outer,inner = classifyPolygons(polys)
+                    if len(inner)>0:
+                        inner_points = [pts[0] for pts in inner]
+                    overall_inout = np.zeros((len(inner),),dtype = np.bool)
 
-                                # clean-up polygons (remove intersections)
-                                if not poly.is_valid:
-                                    poly = poly.buffer(0.0)
-                                if poly.is_empty:
-                                    continue
-                                geoms[time_var[i]].append((poly,vmin,vmax))
-                            # collect all interiors which do not belong to any of the exteriors
-                            outer_interiors = [interior for s,interior in enumerate(inner) if not overall_inout[s]]
-                            for k in outer_interiors:
-                                poly = Polygon(reverseGeometry(k))
-                                # clean-up polygons (remove intersections)
-                                if not poly.is_valid:
-                                    poly = poly.buffer(0.0)
-                                if poly.is_empty:
-                                    continue
-                                geoms[time_var[i]].append((poly,vmin,vmax))
-                            #print len(geoms[time_var[i]])
-                            if viztype ==  'kmz':
-                                ## Creating kml files for the whole domain - this is not recommended for very fne meshes ##
-                                ## due to the restrictions on the maximum number of vertices (31000) for a kml polygon object. ##
-                                ## This restriction does not allow the polygons to be plotted correctly ##
-                                # Can't use i again for counting variable. it is already the counting variable for time_var loop.
-                                for ii in range(len(polys)):
-                                    polys[ii] = np.vstack([polys[ii],polys[ii][0]])
-                                    pol = multipol.newpolygon(name = 'Polygon'+str(ii))
-                                    pol.outerboundaryis = polys[ii]
-                                multipol.visibility = 1
-                                multipol.style.polystyle.fill = 1
-                                multipol.style.polystyle.color = simplekml.Color.hex(hexColorsList[m][1:])
-                                multipol.style.polystyle.outline = 0
-                                s = "       min = " + str(vmin) + " ft, max = " +str(vmax) +" ft"
-                                pol.style.balloonstyle.text = s
-                                pol.style.balloonstyle.bgcolor = simplekml.Color.brown
-                                pol.style.balloonstyle.textcolor = simplekml.Color.black
-                                pol.description = s
-                        m = m+1                    
+                    for out in outer:
+                        if len(inner) > 0:
+                            inout = pointsInsidePoly(inner_points,out)
+                            overall_inout = np.logical_or(overall_inout, inout)
+                            out_inner = [g for f, g in enumerate(inner) if inout[f]]
+                            poly = Polygon(out, out_inner)
+                        else:
+                            poly = Polygon(out)
+
+                        # clean-up polygons (remove intersections)
+                        if not poly.is_valid:
+                            poly = poly.buffer(0.0)
+                        if poly.is_empty:
+                            continue
+                        geoms[time_var[i]].append((poly,vmin,vmax))
+                    # collect all interiors which do not belong to any of the exteriors
+                    outer_interiors = [interior for s,interior in enumerate(inner) if not overall_inout[s]]
+                    for k in outer_interiors:
+                        poly = Polygon(reverseGeometry(k))
+                        # clean-up polygons (remove intersections)
+                        if not poly.is_valid:
+                            poly = poly.buffer(0.0)
+                        if poly.is_empty:
+                            continue
+                        geoms[time_var[i]].append((poly,vmin,vmax))
+                    #print len(geoms[time_var[i]])
+                    if viztype ==  'kmz':
+                        ## Creating kml files for the whole domain - this is not recommended for very fne meshes ##
+                        ## due to the restrictions on the maximum number of vertices (31000) for a kml polygon object. ##
+                        ## This restriction does not allow the polygons to be plotted correctly ##
+                        # Can't use i again for counting variable. it is already the counting variable for time_var loop.
+                        for ii in range(len(polys)):
+                            polys[ii] = np.vstack([polys[ii],polys[ii][0]])
+                            pol = multipol.newpolygon(name = 'Polygon'+str(ii))
+                            pol.outerboundaryis = polys[ii]
+                        multipol.visibility = 1
+                        multipol.style.polystyle.fill = 1
+                        multipol.style.polystyle.color = simplekml.Color.hex(hexColorsList[m][1:])
+                        multipol.style.polystyle.outline = 0
+                        s = "       min = " + str(vmin) + " ft, max = " +str(vmax) +" ft"
+                        pol.style.balloonstyle.text = s
+                        pol.style.balloonstyle.bgcolor = simplekml.Color.brown
+                        pol.style.balloonstyle.textcolor = simplekml.Color.black
+                        pol.description = s
+                m = m+1
 #
 # KEEPING TRACK OF RUNNING TIME ##
 if  viztype ==  'shapefile':
@@ -1286,7 +1286,7 @@ if viztype ==  'shapefile':
     else:
         outputname = outputfile
     if polytype == 'polyline':
-        if filetype in timeVaryingFiles:           
+        if filetype in timeVaryingFiles:
             schema = { 'geometry': 'LineString', 'properties': { fileTypesShapeVarNames[filetype] : 'float','timestep':'str'}}
             with fiona.open(outputname, 'w',driver,schema,crs) as c:
                 for geom in geoms:
@@ -1303,8 +1303,8 @@ if viztype ==  'shapefile':
 
     elif polytype == 'polygon':
         # create the list of variable names for min max and average
-        shapeVars = [ fileTypesShapeVarPrefixes[filetype] + x for x in shapeVarSuffixes ]  
-        if filetype in timeVaryingFiles:           
+        shapeVars = [ fileTypesShapeVarPrefixes[filetype] + x for x in shapeVarSuffixes ]
+        if filetype in timeVaryingFiles:
             schema = { 'geometry': 'Polygon', 'properties': { shapeVars[0] : 'float', shapeVars[1]: 'float', shapeVars[2] : 'float','timestep':'str' ,'t' : 'float'} }
             with fiona.open(outputname, 'w', driver, schema,crs) as c:
                 for geom in geoms:
@@ -1318,17 +1318,17 @@ if viztype ==  'shapefile':
                 for geom in geoms:
                     for g in geoms[geom]:
                         c.write({'geometry': mapping(g[0]),'properties': {shapeVars[0]: g[1], shapeVars[1]: g[2], shapeVars[2]: (g[1]+g[2])/2.0}})
-                        
+
 elif viztype ==  'kmz':
-    # Specifying the kml file name and saving file 
+    # Specifying the kml file name and saving file
     # use default kml name if nothing else was specified
     if outputfile == 'null':
-        kmlFileName = fileTypesKMLFolderNames[filetype] +'.kml'       
+        kmlFileName = fileTypesKMLFolderNames[filetype] +'.kml'
     else:
         kmlFileName = outputfile + '.kml'
     kml.save(kmlFileName)
 
-    
+
 ## KEEPING TRACK OF RUNNING TIME ##
 if viztype ==  'shapefile':
     print 'Finished generating shapefile after  %d seconds'% (time.time()-time0)
@@ -1350,8 +1350,8 @@ if grow == 'static' or grow == 'yes':
     p = subprocess.Popen(startcmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = p.communicate()
     if p.returncode !=0:
-	print >>sys.stderr, 'ERROR: Cannot find GRASS GIS 7 start script (%s)' % startcmd
-	sys.exit(-1)
+        print >>sys.stderr, 'ERROR: Cannot find GRASS GIS 7 start script (%s)' % startcmd
+        sys.exit(-1)
     gisbase = out.strip('\n\r')
     os.environ['GISBASE'] = gisbase
     os.environ['PATH'] += os.pathsep + os.path.join(gisbase, 'extrabin')
@@ -1377,11 +1377,11 @@ if grow == 'static' or grow == 'yes':
 
     #Importing the shapefile generated by Kalpana
     grass.run_command('v.in.ogr',
-	input='./kalpana_out/kalpana_out.shp',
-	min_area=10,
-	snap=0.000001,
-	overwrite=True,
-	quiet=True)
+        input='./kalpana_out/kalpana_out.shp',
+        min_area=10,
+        snap=0.000001,
+        overwrite=True,
+        quiet=True)
 
     #kalpana_vtorast.py begins:######################################################
     location2 = 'GRASS_LOCATION'
@@ -1390,12 +1390,12 @@ if grow == 'static' or grow == 'yes':
 
     #Takes shapefile from WGS84 location and projects it into GRASS_LOCATION.
     grass.run_command('v.proj',
-	location='GRASS_LOCATION_wgs84',
-	mapset='PERMANENT',
-	input='kalpana_out@PERMANENT',
-	output='kalpana_vproj',
-	overwrite=True,
-	quiet=True)
+        location='GRASS_LOCATION_wgs84',
+        mapset='PERMANENT',
+        input='kalpana_out@PERMANENT',
+        output='kalpana_vproj',
+        overwrite=True,
+        quiet=True)
 
     #Read EW and NS resolution
     reg=grass.read_command('g.region',flags='g').split()
@@ -1404,27 +1404,27 @@ if grow == 'static' or grow == 'yes':
 
     #Setting computational region based on DEM.
     grass.run_command('g.region',
-	raster='dem@PERMANENT',
+        raster='dem@PERMANENT',
         nsres=nsresReg,
         ewres=ewresReg,
-	overwrite=True,
-	quiet=True)
+        overwrite=True,
+        quiet=True)
     #Converts shapefile to raster using eleavg (average elevation per Kalpana bin).
     #Other options include elemax and elemin.
     grass.run_command('v.to.rast',
-	input='kalpana_vproj',
-	type='area',
-	output='kalpana_rast',
-	use='attr',
-	attribute_column='eleavg',
-	overwrite=True,
-	quiet=True)
+        input='kalpana_vproj',
+        type='area',
+        output='kalpana_rast',
+        use='attr',
+        attribute_column='eleavg',
+        overwrite=True,
+        quiet=True)
 
     #Creates mask based on extents of DEM raster to limit area of raster operation.
     grass.run_command('r.mask',
-	raster='dem@PERMANENT',
-	quiet=True,
-	overwrite=True)
+        raster='dem@PERMANENT',
+        quiet=True,
+        overwrite=True)
 
     print 'Finished converting water levels to raster format after {0:.2f} minutes'.format((time.time()-time0)/60)
 
@@ -1432,11 +1432,11 @@ if grow == 'static' or grow == 'yes':
 
     # what to do in case of user break: <--Not sure if this is still needed since the locations are being deleted at the end
     def cleanup():
-	gsetup.init(gisbase, gisdb, location2, mapset)
-	for map in [temp_dist, temp_val]:
-	    if map:
-		grass.run_command('g.remove', flags='fb', quiet=True,
-				  type='rast', name=map)
+        gsetup.init(gisbase, gisdb, location2, mapset)
+        for map in [temp_dist, temp_val]:
+            if map:
+                grass.run_command('g.remove', flags='fb', quiet=True,
+                                  type='rast', name=map)
 
     #atexit.register(cleanup)
 
@@ -1461,45 +1461,45 @@ if grow == 'static' or grow == 'yes':
 
     shrink = False
     if radius < 0.0 and radius != "none":
-	shrink = True
+        shrink = True
     if radius != "none":
         radius = -radius
 
     if new == '' and shrink == False:
-	temp_val = "r.grow.tmp.%s.val" % tmp
-	new = temp_val
+        temp_val = "r.grow.tmp.%s.val" % tmp
+        new = temp_val
     else:
-	temp_val = None
+        temp_val = None
 
     if old == '':
-	old = input
+        old = input
 
     if not mapunits and radius != "none":
-	kv = grass.region()
-	scale = math.sqrt(float(kv['nsres']) * float(kv['ewres']))
-	radius *= scale
+        kv = grass.region()
+        scale = math.sqrt(float(kv['nsres']) * float(kv['ewres']))
+        radius *= scale
 
     if metric == 'euclidean':
-	metric = 'squared'
-	radius = radius * radius
+        metric = 'squared'
+        radius = radius * radius
 
     # check if input file exists
     if not grass.find_file(input)['file']:
-	grass.fatal(_("Raster map <%s> not found") % input)
+        grass.fatal(_("Raster map <%s> not found") % input)
 
     if not grass.find_file(base)['file']:
-	grass.fatal(_("Basemap <%s> not found") % base)
+        grass.fatal(_("Basemap <%s> not found") % base)
 
     if shrink == False and radius != "none":
-	try:
-	    grass.run_command('r.grow.distance', input=input, metric=metric,
-			      distance=temp_dist, value=temp_val)
-	except CalledModuleError:
-	    grass.fatal(_("Growing failed. Removing temporary maps."))
-	grass.mapcalc(
-	    "$output = if(!isnull($input),$old,if($dist < $radius && $base < $new,$new,null()))",
-	    output=output, input=input, radius=radius, base=base,
-	    old=old, new=new, dist=temp_dist, quiet=True)
+        try:
+            grass.run_command('r.grow.distance', input=input, metric=metric,
+                              distance=temp_dist, value=temp_val)
+        except CalledModuleError:
+            grass.fatal(_("Growing failed. Removing temporary maps."))
+        grass.mapcalc(
+            "$output = if(!isnull($input),$old,if($dist < $radius && $base < $new,$new,null()))",
+            output=output, input=input, radius=radius, base=base,
+            old=old, new=new, dist=temp_dist, quiet=True)
     elif shrink == False and radius == "none":
         try:
             grass.run_command('r.grow.distance', input=input, value=temp_val)
@@ -1509,16 +1509,16 @@ if grow == 'static' or grow == 'yes':
             "$output = if(!isnull($input),$old,if($base < $new,$new,null()))",
             output=output, input=input, old=old, base=base, new=new, quiet=True)
     else:
-	# shrink
-	try:
-	    grass.run_command('r.grow.distance', input=input, metric=metric,
-			      distance=temp_dist, value=temp_val, flags='n', quiet=True)
-	except CalledModuleError:
-	    grass.fatal(_("Shrinking failed. Removing temporary maps."))
+        # shrink
+        try:
+            grass.run_command('r.grow.distance', input=input, metric=metric,
+                              distance=temp_dist, value=temp_val, flags='n', quiet=True)
+        except CalledModuleError:
+            grass.fatal(_("Shrinking failed. Removing temporary maps."))
 
-	grass.mapcalc(
-	    "$output = if($dist < $radius,null(),$old)",
-	    output=output, radius=radius, old=old, dist=temp_dist, quiet=True)
+        grass.mapcalc(
+            "$output = if($dist < $radius,null(),$old)",
+            output=output, radius=radius, old=old, dist=temp_dist, quiet=True)
 
     # grass.run_command('r.colors', map=output, raster=input)
 
@@ -1531,39 +1531,39 @@ if grow == 'static' or grow == 'yes':
 
     # Gives all non-null cells in grown raster a single uniform value (-1).
     grass.mapcalc("$output = if(!isnull($input),-1,null())",
-		  output='tempmap',
-		  input='WaterLevels_final_binned',
-		  quiet=True,
-		  overwrite=True)
+                  output='tempmap',
+                  input='WaterLevels_final_binned',
+                  quiet=True,
+                  overwrite=True)
 
     # Groups the uniform raster by giving each connected group of cells a unique ID.
     # The goal is to remove isolated clumps not connected to original raster.
     grass.run_command('r.clump',
-		      input='tempmap',
-		      output='clumpmap',
-		      quiet=True,
-		      overwrite=True)
+                      input='tempmap',
+                      output='clumpmap',
+                      quiet=True,
+                      overwrite=True)
 
     # Identifies original clumps found in the ADCIRC raster.
     grass.mapcalc("$output = if(!isnull($A) && !isnull($B),$B,null())",
-		  output='tempmap',
-		  A='kalpana_rast',
-		  B='clumpmap',
-		  quiet=True,
-		  overwrite=True)
+                  output='tempmap',
+                  A='kalpana_rast',
+                  B='clumpmap',
+                  quiet=True,
+                  overwrite=True)
 
     # Sorts clump areas largest to smallest, removes largest clump (null clump).
     # List format: [clump1, #cells1, clump2, #cells2, ...].
     areas=grass.read_command('r.stats',
-			     input='tempmap',
-			     sort='desc',
-			     flags='c',
-			     quiet=True).split()
+                             input='tempmap',
+                             sort='desc',
+                             flags='c',
+                             quiet=True).split()
     if areas[0] == '*':
-	areas = areas[2:]
+        areas = areas[2:]
     else:
-	areas.remove(areas[2])
-	areas.remove(areas[2])
+        areas.remove(areas[2])
+        areas.remove(areas[2])
 
     # Loops over #cells in each clump, starting with largest. Stops when #cells < 50
     # and deletes all remaining smaller clumps. This step is necessary only because
@@ -1571,90 +1571,90 @@ if grow == 'static' or grow == 'yes':
     # that will be kept are connected to the large, original ADCIRC raster.
     cutoff = len(areas)
     for i in range(1,len(areas),2):
-	if int(areas[i]) < 50:
-	    cutoff = i - 1
-	    break
+        if int(areas[i]) < 50:
+            cutoff = i - 1
+            break
     areas = areas[:cutoff]
 
     # Assigns uniform value (-1) to all areas that include and are connected to
     # original ADCIRC raster (r.reclass requires a list of rules as str)
     reclasslist = ''
     for i in range(0,len(areas),2):
-	reclasslist += areas[i] + ' '
+        reclasslist += areas[i] + ' '
     reclasslist += '= -1'
     grass.write_command('r.reclass',
-			input='clumpmap',
-			output='tempmap',
-			rules='-',
-			stdin=reclasslist,
-			quiet=True,
-			overwrite=True)
+                        input='clumpmap',
+                        output='tempmap',
+                        rules='-',
+                        stdin=reclasslist,
+                        quiet=True,
+                        overwrite=True)
 
     # Passes back grown ADCIRC cells if they coincide with the assigned value (-1).
     grass.mapcalc("$output = if($A == -1,$B,null())",
 
-		  output='storm_final',
-		  A='tempmap',
-		  B='WaterLevels_final_binned',
-		  quiet=True,
-		  overwrite=True)
+                  output='storm_final',
+                  A='tempmap',
+                  B='WaterLevels_final_binned',
+                  quiet=True,
+                  overwrite=True)
 
     # Keyword 'with' means ADCIRC cells with values lower than the land surface
     # elevation will be removed
     if growmethod == 'with':
-	grass.mapcalc("$output = if($adcirc < $dem, null(), $adcirc)",
-		      output='storm_final_less_errors',
-		      adcirc='storm_final',
-		      dem='dem',
-		      quiet=True,
-		      overwrite=True)
-	grass.run_command('g.rename',
-		      raster=('storm_final_less_errors','storm_final_binned'),
-		      overwrite=True,
-		      quiet=True)
+        grass.mapcalc("$output = if($adcirc < $dem, null(), $adcirc)",
+                      output='storm_final_less_errors',
+                      adcirc='storm_final',
+                      dem='dem',
+                      quiet=True,
+                      overwrite=True)
+        grass.run_command('g.rename',
+                      raster=('storm_final_less_errors','storm_final_binned'),
+                      overwrite=True,
+                      quiet=True)
 
     print 'Finished executing r.grow after {0:.2f} minutes'.format((time.time()-time0)/60)
 
     #Flood depth visualization option
     if flooddepth == "yes":
-	#Take the difference between flood elevation and land elevation where flooding occurs
-	grass.mapcalc("flood_depth=if(dem>0,storm_final-dem,null())",
-	    overwrite=True)
-	grass.run_command('r.out.gdal',
-	    input='flood_depth',
-	    flags='m',
-	    format='GTiff',
-	    nodata=-9999,
-	    output=grownoutput+'.tif',
-	    overwrite=True)
-	print 'Finished creating {0}.tif after {1:.2f} minutes'.format(grownoutput,float((time.time()-time0)/60))
+        #Take the difference between flood elevation and land elevation where flooding occurs
+        grass.mapcalc("flood_depth=if(dem>0,storm_final-dem,null())",
+            overwrite=True)
+        grass.run_command('r.out.gdal',
+            input='flood_depth',
+            flags='m',
+            format='GTiff',
+            nodata=-9999,
+            output=grownoutput+'.tif',
+            overwrite=True)
+        print 'Finished creating {0}.tif after {1:.2f} minutes'.format(grownoutput,float((time.time()-time0)/60))
 
     else:
         #Converts binned raster to polygons
         grass.run_command('r.to.vect',
-	  	          input='storm_final',
-		          output=grownoutput,
-		          type='area',
-		          flags='s',
-		          quiet=True,
-		          overwrite=True)
+                          input='storm_final',
+                          output=grownoutput,
+                          type='area',
+                          flags='s',
+                          quiet=True,
+                          overwrite=True)
 
         #Export to a useful format specified in grownfiletype; defaul is ESRI shapefile
         grass.run_command('v.out.ogr',
-		          input=grownoutput,
-		          output=grownoutput,
-		          type='area',
-		          format=grownfiletype,
-		          flags='se',
-		          quiet=True,
-		          overwrite=True)
+                          input=grownoutput,
+                          output=grownoutput,
+                          type='area',
+                          format=grownfiletype,
+                          flags='se',
+                          quiet=True,
+                          overwrite=True)
 
         print 'Finished creating {0} after {1:.2f} minutes'.format(grownoutput,float((time.time()-time0)/60))
-###	#Zip output and remove extranous folders ###Pay attention to output type; it's possible not all grownfiletypes can be zipped.
+###     #Zip output and remove extranous folders ###Pay attention to output type; it's possible not all grownfiletypes can be zipped.
     os.system("zip -rq {0}.zip {0}".format(grownoutput))
     os.system("rm -fr GRASS_LOCATION_wgs84 GRASS_LOCATION kalpana_out {0}".format(grownoutput))
     if grownfiletype != 'ESRI_Shapefile':
-	print 'USER WARNING: User may be required to specify file extension for {0}'.format(grownoutput)
+        print 'USER WARNING: User may be required to specify file extension for {0}'.format(grownoutput)
 
 ### HEAD LOSS METHOD ###
 if grow=="headloss":
@@ -1894,4 +1894,3 @@ if grow=="headloss":
     #Remove unnecessary folders
     os.system("zip -rq {0}.zip {0}".format(grownoutput))
     os.system("rm -fr HEADLOSS_LOCATION GRASS_LOCATION_wgs84 kalpana_out {0}".format(grownoutput))
-
