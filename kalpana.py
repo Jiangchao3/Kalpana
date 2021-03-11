@@ -177,6 +177,7 @@ if options.createlocation == "yes":
                     resolution='value',
                     resolution_value=resolution,
                     resample='bilinear',
+                    flags='o',
                     extent='input')
                 outList.append('ras'+str(s))#Create a list of rasters in GRASS_LOCATION to be patched together
         else:
@@ -185,6 +186,7 @@ if options.createlocation == "yes":
                 grass.run_command('r.import',
                     overwrite=True,
                     input=rastername[s],
+                    flags='o',
                     output='ras'+str(s))
                 rastInfo=grass.parse_command('r.info',map='ras'+str(s),flags='g',delimiter='=')
                 nsres=rastInfo['nsres']
@@ -218,6 +220,7 @@ if options.createlocation == "yes":
                 resolution='value',
                 resolution_value=resolution,
                 resample='bilinear',
+                flags='o',
                 extent='input')
         else:
             #Import and automatically reproject the raster
@@ -226,6 +229,7 @@ if options.createlocation == "yes":
                 input=str(rastername[0]),
                 output='dem',
                 extent='input',
+                flags='o',
                 resolution='estimated')
         #Set the resolution and computational region to align with the DEM
         grass.run_command('g.region',
