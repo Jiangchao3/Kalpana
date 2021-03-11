@@ -48,7 +48,7 @@ $python $kalpana --storm florence --filetype maxele.63.nc --contourrange "0 10 0
 
 #Example 10: Visualize grown results as flood depths.
 echo "Running Example 10"
-$python $kalpana --storm florence --filetype maxele.63.nc --contourrange "0 10 0.1" --units english --grow yes --grownoutput FloodDepth --flooddepth yes
+$python $kalpana --storm florence --filetype maxele.63.nc --contourrange "0 10 0.1" --grow yes --grownoutput FloodDepth --flooddepth yes
 
 #Example 6: Keep original raster resolution and datum using multiple rasters.
 #echo "Running Example 6 to test multiple dems"
