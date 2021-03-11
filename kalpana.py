@@ -188,6 +188,7 @@ if options.createlocation == "yes":
                     input=rastername[s],
                     flags='o',
                     output='ras'+str(s))
+                outList.append('ras'+str(s))#Create a list of rasters in GRASS_LOCATION to be patched together
                 rastInfo=grass.parse_command('r.info',map='ras'+str(s),flags='g',delimiter='=')
                 nsres=rastInfo['nsres']
                 ewres=rastInfo['ewres']
