@@ -1170,7 +1170,7 @@ for i in range(len(time_var)):
                 if units == 'english':
                     var = np.multiply(float(fileTypesEnglishUnitsConversions[filetype]),var)
             contour = pplot.tricontour(tri, var,levels=levels)
-            geoms[time_var[i]] = []
+            geoms[float(time_var[i])] = []
             print(time_var[i])
             m = 0
             for colli,coll in enumerate(contour.collections):
@@ -1181,7 +1181,7 @@ for i in range(len(time_var)):
                     if len(pp.vertices) > 1:
                         ## Extracting the vertices of each of the paths corrsponding to each contour level ##
                         ## and wrapping them up in a shapely Linestring object ##
-                        geoms[time_var[i]].append((LineString(pp.vertices),val))
+                        geoms[float(time_var[i])].append((LineString(pp.vertices),val))
                 m = m + 1
         elif polytype == 'polygon':
             ## To create POLYGON files ##
@@ -1199,8 +1199,10 @@ for i in range(len(time_var)):
                 # limit range to the contour range
                 np.place(var,var > max(levels),max(levels)-0.01)
                 np.place(var,(-100 < var) & (var < min(levels)),min(levels))
+            # make sure masked values are zero
+            var[var.mask] = 0
             contour = pplot.tricontourf(tri, var,levels=levels)
-            geoms[time_var[i]] = []
+            geoms[float(time_var[i])] = []
             m = 0
             l = len(contour.collections)
             for colli,coll in enumerate(contour.collections):
@@ -1239,7 +1241,7 @@ for i in range(len(time_var)):
                             poly = poly.buffer(0.0)
                         if poly.is_empty:
                             continue
-                        geoms[time_var[i]].append((poly,vmin,vmax))
+                        geoms[float(time_var[i])].append((poly,vmin,vmax))
                     # collect all interiors which do not belong to any of the exteriors
                     outer_interiors = [interior for s,interior in enumerate(inner) if not overall_inout[s]]
                     for k in outer_interiors:
@@ -1249,7 +1251,7 @@ for i in range(len(time_var)):
                             poly = poly.buffer(0.0)
                         if poly.is_empty:
                             continue
-                        geoms[time_var[i]].append((poly,vmin,vmax))
+                        geoms[float(time_var[i])].append((poly,vmin,vmax))
                     #print(len(geoms[time_var[i]]))
                     if viztype ==  'kmz':
                         ## Creating kml files for the whole domain - this is not recommended for very fne meshes ##
