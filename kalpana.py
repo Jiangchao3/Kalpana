@@ -282,7 +282,8 @@ if options.createcostsurface == "yes":
     if p.returncode !=0:
         print('ERROR: Cannot find GRASS GIS 7 start script (%s)' % startcmd, file=sys.stderr)
         sys.exit(-1)
-    gisbase = out.strip('\n\r')
+    out = str(out)
+    gisbase = out[2:-3]
     os.environ['GISBASE'] = gisbase
     os.environ['PATH'] += os.pathsep + os.path.join(gisbase, 'extrabin')
     home = os.path.expanduser('./')
@@ -1188,7 +1189,7 @@ for i in range(len(time_var)):
             if filetype in timeVaryingFiles:
                 var = nc[fileTypesNetCDFVarNames[filetype]][i][:]
             # construct mask
-            if filetype in requireFill and type(var) == "MaskedArray" and var.mask.any():
+            if filetype in requireFill and var.mask.any():
                 point_mask_indices = np.where(var.mask)
                 tri_mask = np.any(np.in1d(nv,point_mask_indices).reshape(-1,3),axis=1)
                 tri.set_mask(tri_mask)
@@ -1199,8 +1200,6 @@ for i in range(len(time_var)):
                 # limit range to the contour range
                 np.place(var,var > max(levels),max(levels)-0.01)
                 np.place(var,(-100 < var) & (var < min(levels)),min(levels))
-            # make sure masked values are zero
-            var[var.mask] = 0
             contour = pplot.tricontourf(tri, var,levels=levels)
             geoms[float(time_var[i])] = []
             m = 0
@@ -1360,7 +1359,8 @@ if grow == 'static' or grow == 'yes':
     if p.returncode !=0:
         print('ERROR: Cannot find GRASS GIS 7 start script (%s)' % startcmd, file=sys.stderr)
         sys.exit(-1)
-    gisbase = out.strip('\n\r')
+    out = str(out)
+    gisbase = out[2:-3]
     os.environ['GISBASE'] = gisbase
     os.environ['PATH'] += os.pathsep + os.path.join(gisbase, 'extrabin')
     home = os.path.expanduser('./')
@@ -1377,7 +1377,7 @@ if grow == 'static' or grow == 'yes':
 
     location = 'GRASS_LOCATION_wgs84'
     mapset = 'PERMANENT'
-    gsetup.init(gisbase, gisdb, location, mapset)#Setting the GRASS working environment to GRASS_LOCATION_wgs84 (WGS84;lat/long)
+    gsetup.init(gisbase, gisdb, location, mapset) #Setting the GRASS working environment to GRASS_LOCATION_wgs84 (WGS84;lat/long)
 
     print('Finished setting up GRASS environment after {0:.2f} seconds'.format(time.time()-time0))
 
@@ -1680,7 +1680,9 @@ if grow=="headloss":
     if p.returncode !=0:
         print('ERROR: Cannot find GRASS GIS 7 start script (%s)' % startcmd, file=sys.stderr)
         sys.exit(-1)
-    gisbase = out.strip('\n\r')
+    out = str(out)
+    gisbase = out[2:-3]
+    print(gisbase)
     os.environ['GISBASE'] = gisbase
     os.environ['PATH'] += os.pathsep + os.path.join(gisbase, 'extrabin')
     home = os.path.expanduser('./')
