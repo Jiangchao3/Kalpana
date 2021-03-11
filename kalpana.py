@@ -313,6 +313,9 @@ if options.createcostsurface == "yes":
     grass.run_command('g.message',message="Begin importing land cover raster.")
 
     #Ask for land cover classification raster
+    if landcoverraster=="NLCD2016" and os.path.exists("NLCD_2016_Land_Cover_L48_20190424.img"):
+        print("Using NCLD_2016 landcover raster that already exists")
+        landcoverraster="NLCD_2016_Land_Cover_L48_20190424.img"
     if landcoverraster=="NLCD2016":
         try:
             os.system("wget -q -t 3 https://s3-us-west-2.amazonaws.com/mrlc/NLCD_2016_Land_Cover_L48_20190424.zip")
