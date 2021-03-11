@@ -12,6 +12,7 @@
 #    Argonne National Laboratory                                                       # 
 ########################################################################################
 python=python3
+kalpana=../../kalpana.py
 
 # Check for existing data
 if [ ! -d "grdn35w077_13" ]; then
@@ -27,13 +28,15 @@ if [ ! -d "grdn35w078_13" ]; then
    # download the test DEM
    wget "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/ArcGrid/USGS_NED_13_n35w078_ArcGrid.zip" -O temp.zip
    # unzip only the data part 
-   unzip Test2.zip "grdn35w078_13/*"
+   unzip temp.zip "grdn35w078_13/*"
    # delete the archive
    rm temp.zip
 fi
 
 #Example 6: Keep original raster resolution and datum using multiple rasters.
-$python ./kalpana.py --createlocation yes --raster "./grdn35w077_13/w001001.adf,./grdn35w078_13/w001001.adf" --createmethod existing --vunitconv m2f
+echo "Running Example 6"
+$python $kalpana --createlocation yes --raster "./grdn35w077_13/w001001.adf,./grdn35w078_13/w001001.adf" --createmethod existing --vunitconv m2f
 
-#Example 6: Keep original raster resolution and datum using multiple rasters.
-#python ./kalpana.py --createlocation yes --raster "./grdn35w077_13/w001001.adf,./grdn35w078_13/w001001.adf" --createmethod existing --vunitconv m2f
+#Example 7: Keep original raster resolution and datum using multiple rasters.
+echo "Running Example 7"
+$python $kalpana --storm florence --filetype maxele.63.nc --contourrange "0 21 0.5" --units english --grow yes --grownoutput WaterLevels_grownDefaults --growmethod without --growradius 30.01 --flooddepth no --grownfiletype ESRI_Shapefile
