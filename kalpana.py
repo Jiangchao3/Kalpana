@@ -115,15 +115,16 @@ if options.createlocation == "yes":
     #Working with GRASS without starting it explicitly; using metadata only.
     #This works assuming a linux operating system. If using a different operating system, see the website below.
     #More information: https://grasswiki.osgeo.org/wiki/Working_with_GRASS_without_starting_it_explicitly
-    grass7bin = 'grass72'
+    grass7bin = 'grass'
     startcmd = grass7bin + ' --config path'
     p = subprocess.Popen(startcmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = p.communicate()
     if p.returncode != 0:
-        print >>sys.stderr, 'ERROR: %s' % err
-        print >>sys.stderr, "ERROR: Cannot find GRASS GIS 7 start script (%s)" % startcmd
+        print("ERROR: %s" % err, file=sys.stderr)
+        print("ERROR: Cannot find GRASS GIS 7 start script (%s)" % startcmd, file=sys.stderr)
         sys.exit(-1)
-    gisbase = out.strip('\n')
+    out = str(out)
+    gisbase = out[2:-3]
     os.environ['GISBASE'] = gisbase
     gpydir = os.path.join(gisbase, "etc", "python")
     appendir = sys.path.append(gpydir)
@@ -140,8 +141,8 @@ if options.createlocation == "yes":
     p = subprocess.Popen(startcmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = p.communicate()
     if p.returncode != 0:
-        print >>sys.stderr, 'ERROR: %s' % err
-        print >>sys.stderr, 'ERROR: Cannot generate location (%s)' % startcmd
+        print('ERROR: %s' % err, file=sys.stderr)
+        print('ERROR: Cannot generate location (%s)' % startcmd, file=sys.stderr)
         sys.exit(-1)
     else:
         print('Created location %s' % location_path)
@@ -268,13 +269,13 @@ if options.createcostsurface == "yes":
     #Working with GRASS without starting it explicitly; using existing location.
     #This works assuming a linux operating system. If using a different operating system, see the website below.
     #More information: https://grasswiki.osgeo.org/wiki/Working_with_GRASS_without_starting_it_explicitly
-    grass7bin = 'grass72'
+    grass7bin = 'grass'
     gisdb = os.path.expanduser("./")
     startcmd = [grass7bin, '--config', 'path']
     p = subprocess.Popen(startcmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = p.communicate()
     if p.returncode !=0:
-        print >>sys.stderr, 'ERROR: Cannot find GRASS GIS 7 start script (%s)' % startcmd
+        print('ERROR: Cannot find GRASS GIS 7 start script (%s)' % startcmd, file=sys.stderr)
         sys.exit(-1)
     gisbase = out.strip('\n\r')
     os.environ['GISBASE'] = gisbase
@@ -295,7 +296,7 @@ if options.createcostsurface == "yes":
     mapset = 'PERMANENT'
     gsetup.init(gisbase, gisdb, location, mapset)#Setting the GRASS working environment to GRASS_LOCATION_wgs84 (WGS84;lat/long)
 
-    #print 'Finished setting up GRASS environment after {0:.2f} seconds'.format(time.time()-time0)
+    #print('Finished setting up GRASS environment after {0:.2f} seconds'.format(time.time()-time0))
 
     #Mask all future operations by extents of the dem
     grass.run_command("r.mask",
@@ -313,7 +314,7 @@ if options.createcostsurface == "yes":
             zf.extractall(path="./")
             zf.close()
         except IOError:
-            print "Could not connect to server after 3 tries. Attempt to download NLCD raster failed. Please check firewalls or manually download a land cover raster."
+            print("Could not connect to server after 3 tries. Attempt to download NLCD raster failed. Please check firewalls or manually download a land cover raster.")
             sys.exit(0)
         #Import NLCD raster from unzipped data
         grass.run_command('r.import',
@@ -592,7 +593,7 @@ if options.storm == "null" :
         if filetype == '1' or filetype == '2' or filetype == '3' or filetype == '4' or filetype == '8':
             lonlatbuffer = float(raw_input('enter long/lat buffer: '))
         elif filetype == '5' or filetype == '6' or filetype == '7':
-            print 'KMZ files cannot be created for this file type'
+            print('KMZ files cannot be created for this file type')
     filename = 'null'
     logofile = 'logo.png'
     logodims = 'null'
@@ -642,31 +643,31 @@ if grow != "no":
 
 #
 # jgf: Change the input values to something more intuitive if necessary
-#print 'INFO: storm is ' + storm
+#print('INFO: storm is ' + storm)
 legacyPolyTypeMapping = { 'A' : 'polyline', 'B' : 'polygon' }
 if polytype in legacyPolyTypeMapping.keys():
     polytype = legacyPolyTypeMapping[polytype]
-#print 'INFO: polytype is ' + polytype
+#print('INFO: polytype is ' + polytype)
 legacyVizTypeMapping = { 'X' : 'shapefile', 'Y' : 'kmz' }
 if viztype in legacyVizTypeMapping.keys():
     viztype = legacyVizTypeMapping[viztype]
-#print 'INFO: viztype is ' + viztype
+#print('INFO: viztype is ' + viztype)
 legacySubplotsMapping = { 'Y' : 'yes', 'N' : 'no' }
 if subplots in legacySubplotsMapping.keys():
     subplots = legacySubplotsMapping[subplots]
-#print 'INFO: subplots is ' + subplots
+#print('INFO: subplots is ' + subplots)
 legacyFileTypeMapping = { '1' : 'bathytopo', '2' : 'maxele.63.nc', '3' : 'maxwvel.63.nc', '4' : 'swan_HS_max.63.nc', '5' : 'fort.63.nc', '6' : 'fort.74.nc', '7' : 'swan_HS.63.nc', '8' : 'swan_TPS_max.63.nc', '9' : 'swan_TPS.63.nc', '10' : 'swan_TMM10.63.nc' }
 if filetype in legacyFileTypeMapping.keys():
     filetype = legacyFileTypeMapping[filetype]
-#print 'INFO: filetype is ' + filetype
+# print('INFO: filetype is ' + filetype)
 #
 # jgf: designate certain files as time varying
 timeVaryingFiles = ['fort.63.nc', 'fort.74.nc', 'swan_HS.63.nc', 'swan_TPS_63.nc', 'swan_TMM10.63.nc']
-if filetype in timeVaryingFiles: print "INFO: This file is time varying."
+if filetype in timeVaryingFiles: print("INFO: This file is time varying.")
 #
 # jgf: Check for conflicts between input parameters.
 if viztype == 'kmz' and filetype in timeVaryingFiles:
-    print "ERROR: Cannot produce Google Earth (kmz) output for time varying files."
+    print("ERROR: Cannot produce Google Earth (kmz) output for time varying files.")
     exit
 #
 # DEFINING BINS FOR KML CREATION
@@ -682,7 +683,7 @@ if viztype ==  'kmz':
         south = north
         north = north +0.5
     bins.append([gdomain[0],local[0],gdomain[2],gdomain[3]])
-    #print bins
+    #print(bins)
 #
 fileTypesColorBarNames = { 'maxele.63.nc' : 'Colorbar-water-levels.png', 'swan_HS_max.63.nc' : 'Colorbar-wave-heights.png', 'maxwvel.63.nc' : 'Colorbar-wind-speeds.png', 'swan_TPS_max.63.nc' : 'Colorbar-wave-periods.png', 'bathytopo' : 'Colorbar-bathymetry.png' }
 fileTypesNetCDFVarNames = { 'bathytopo' : 'depth', 'maxele.63.nc' : 'zeta_max', 'maxwvel.63.nc' : 'wind_max', 'swan_HS_max.63.nc' : 'swan_HS_max', 'fort.63.nc' : 'zeta', 'fort.74.nc' : [ 'windx', 'windy' ], 'swan_HS.63.nc' : 'swan_HS', 'swan_TPS_max.63.nc' : 'swan_TPS_max', 'swan_TPS.63.nc' : 'swan_TPS', 'swan_TMM10.63.nc' : 'swan_TMM10' }#######Step can be surpassed in sample maxele if zeta_max is changed to maxele after key 'maxele.63.nc'
@@ -837,7 +838,7 @@ if datumconv == 'yes':
     time1 = time.time()
     deltas = readraster(datumtextfile)
     var = interpolate(0.005,0.005)
-    print 'Time to run datum conversion: ', time.time() - time1
+    print('Time to run datum conversion: ', time.time() - time1)
 #
 # Extracting time step information from the output file
 time_var= nc['time']
@@ -940,7 +941,7 @@ def interpolateContourLevels(contourLevels,palette):
     for i in range(len(contourLevels)):
         scale.append((contourLevels[i]-contourLevels[0])/(contourLevels[-1]-contourLevels[0]))
     for i in range(len(contourLevels)):
-        #print scale[i]
+        #print(scale[i])
         contourPalette['value'].append(scale[i])
         for j in range(len(palette['value'])):
             if scale[i] == palette['value'][j]:
@@ -1062,7 +1063,7 @@ def signedArea(ring):
 
 ## CREATING CONTOUR AND EXTRACTING LINESTRINGS/POLYGONS FOR EVERY TIMESTEP ##
 for i in range(len(time_var)):
-    print "Time step " + str(i)
+    print("Time step " + str(i))
     if viztype ==  'kmz':
         fol = kml.newfolder(name = fileTypesKMLFolderNames[filetype])
 
@@ -1079,26 +1080,26 @@ for i in range(len(time_var)):
         ## Creating polygon KML files by combining contour plots of subdomains specified in bins ##
         for v in bins:
             ## Printing the long/lat box ##
-            #print 'bin is ' + str(v)
+            #print('bin is ' + str(v))
             localy = []
             localx =[]
             localelements = []
             ## Extracting local mesh for each long/latbox ##
             localy,localx,localelements,localvar = createSubmeshWithinSpecifiedLatLonBox(v[0],v[1],v[2],v[3],lonlatbuffer)
             if localelements ==[]:
-                #print localelements
+                #print(localelements)
                 continue
             ## Triangulating for each local mesh ##
             tri = matplotlib.tri.Triangulation(localx,localy,triangles=localelements)
             ## Plotting filled contour for each local mesh ##
-            print 'INFO: Plotting filled contour for each local mesh.'
-            #print 'localvar is ' + str(localvar)
+            print('INFO: Plotting filled contour for each local mesh.')
+            #print('localvar is ' + str(localvar))
             contour = pplot.tricontourf(tri, localvar,levels=levels,shading='faceted')
             m = 0
             for colli,coll in enumerate(contour.collections):
                 vmin,vmax = contour.levels[colli:colli+2]
-                #print 'Level %d' %m
-                #print vmin,vmax
+                #print('Level %d' %m)
+                #print(vmin,vmax)
                 ## Extracting the path objects corresponding to each contour level ##
                 for p in coll.get_paths():
                     p.simplify_threshold = 0.0
@@ -1149,7 +1150,7 @@ for i in range(len(time_var)):
                 ## Setting the kml multigeometry object properties ##
                 store[m].visibility = 1
                 store[m].style.polystyle.fill = 1
-                #print m
+                #print(m)
                 store[m].style.polystyle.color = simplekml.Color.hex(hexColorsList[m][1:])
                 store[m].style.polystyle.outline = 0
                 m = m+1
@@ -1165,12 +1166,12 @@ for i in range(len(time_var)):
                     var = np.multiply(float(fileTypesEnglishUnitsConversions[filetype]),var)
             contour = pplot.tricontour(tri, var,levels=levels)
             geoms[time_var[i]] = []
-            print time_var[i]
+            print(time_var[i])
             m = 0
             for colli,coll in enumerate(contour.collections):
                 val = contour.levels[colli]
-                print 'Level %d' %m
-                print val
+                print('Level %d' %m)
+                print(val)
                 for pp in coll.get_paths():
                     if len(pp.vertices) > 1:
                         ## Extracting the vertices of each of the paths corrsponding to each contour level ##
@@ -1244,7 +1245,7 @@ for i in range(len(time_var)):
                         if poly.is_empty:
                             continue
                         geoms[time_var[i]].append((poly,vmin,vmax))
-                    #print len(geoms[time_var[i]])
+                    #print(len(geoms[time_var[i]]))
                     if viztype ==  'kmz':
                         ## Creating kml files for the whole domain - this is not recommended for very fne meshes ##
                         ## due to the restrictions on the maximum number of vertices (31000) for a kml polygon object. ##
@@ -1267,9 +1268,9 @@ for i in range(len(time_var)):
 #
 # KEEPING TRACK OF RUNNING TIME ##
 if  viztype ==  'shapefile':
-    print 'Finished contouring, extracting information and creating polygons after %d seconds'% (time.time()-time0)
+    print('Finished contouring, extracting information and creating polygons after %d seconds'% (time.time()-time0))
 else:
-    print 'Finished contouring, extracting information and creating multigeometry polygons after %d seconds'% (time.time()-time0)
+    print('Finished contouring, extracting information and creating multigeometry polygons after %d seconds'% (time.time()-time0))
 #
 fileTypesShapeVarNames = { 'bathytopo' : 'waterdepth', 'maxele.63.nc' : 'maxelev', 'maxwvel.63.nc' : 'maxwvel', 'swan_HS_max.63.nc' : 'maxwvht', 'fort.63.nc' : 'elevat', 'fort.74.nc' : 'wvel', 'swan_HS.63.nc' : 'wavht' }
 #
@@ -1291,7 +1292,7 @@ if viztype ==  'shapefile':
             with fiona.open(outputname, 'w',driver,schema,crs) as c:
                 for geom in geoms:
                     k = list(time_var).index(geom)
-                    print k
+                    print(k)
                     for g in geoms[geom]:
                         c.write({'geometry': mapping(g[0]),'properties': { fileTypesShapeVarNames[filetype] : g[1],'timestep':a[k]}})
         else:
@@ -1309,7 +1310,7 @@ if viztype ==  'shapefile':
             with fiona.open(outputname, 'w', driver, schema,crs) as c:
                 for geom in geoms:
                     k = list(time_var).index(geom)
-                    print k
+                    print(k)
                     for g in geoms[geom]:
                         c.write({'geometry': mapping(g[0]),'properties': { shapeVars[0]: g[1], shapeVars[1] : g[2], shapeVars[2] : (g[1]+g[2])/2.0,'timestep':a[k],'t':time_var[k]}})
         else:
@@ -1331,9 +1332,9 @@ elif viztype ==  'kmz':
 
 ## KEEPING TRACK OF RUNNING TIME ##
 if viztype ==  'shapefile':
-    print 'Finished generating shapefile after  %d seconds'% (time.time()-time0)
+    print('Finished generating shapefile after  %d seconds'% (time.time()-time0))
 else:
-    print 'Finished generating KML file after %d seconds'% (time.time()-time0)
+    print('Finished generating KML file after %d seconds'% (time.time()-time0))
 
 ### STATIC DOWNSCALING METHOD ###
 if grow == 'static' or grow == 'yes':
@@ -1344,13 +1345,13 @@ if grow == 'static' or grow == 'yes':
     #This works assuming a linux operating system. If using a different operating system, see the website below.
     #More information: https://grasswiki.osgeo.org/wiki/Working_with_GRASS_without_starting_it_explicitly
 
-    grass7bin = 'grass72'
+    grass7bin = 'grass'
     gisdb = os.path.expanduser("./")
     startcmd = [grass7bin, '--config', 'path']
     p = subprocess.Popen(startcmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = p.communicate()
     if p.returncode !=0:
-        print >>sys.stderr, 'ERROR: Cannot find GRASS GIS 7 start script (%s)' % startcmd
+        print('ERROR: Cannot find GRASS GIS 7 start script (%s)' % startcmd, file=sys.stderr)
         sys.exit(-1)
     gisbase = out.strip('\n\r')
     os.environ['GISBASE'] = gisbase
@@ -1371,7 +1372,7 @@ if grow == 'static' or grow == 'yes':
     mapset = 'PERMANENT'
     gsetup.init(gisbase, gisdb, location, mapset)#Setting the GRASS working environment to GRASS_LOCATION_wgs84 (WGS84;lat/long)
 
-    print 'Finished setting up GRASS environment after {0:.2f} seconds'.format(time.time()-time0)
+    print('Finished setting up GRASS environment after {0:.2f} seconds'.format(time.time()-time0))
 
     #import_kalpana.py begins:#######################################################
 
@@ -1426,7 +1427,7 @@ if grow == 'static' or grow == 'yes':
         quiet=True,
         overwrite=True)
 
-    print 'Finished converting water levels to raster format after {0:.2f} minutes'.format((time.time()-time0)/60)
+    print('Finished converting water levels to raster format after {0:.2f} minutes'.format((time.time()-time0)/60))
 
     #Intermediate r.grow.modified steps pasted below:####################################
 
@@ -1525,7 +1526,7 @@ if grow == 'static' or grow == 'yes':
     # write cmd history:
     #grass.raster_history(output)
 
-    print 'Finished setting up data for r.grow process after {0:.2f} minutes'.format((time.time()-time0)/60)
+    print('Finished setting up data for r.grow process after {0:.2f} minutes'.format((time.time()-time0)/60))
 
     #Intermediate grow_process.py steps pasted below: ######################################
 
@@ -1613,7 +1614,7 @@ if grow == 'static' or grow == 'yes':
                       overwrite=True,
                       quiet=True)
 
-    print 'Finished executing r.grow after {0:.2f} minutes'.format((time.time()-time0)/60)
+    print('Finished executing r.grow after {0:.2f} minutes'.format((time.time()-time0)/60))
 
     #Flood depth visualization option
     if flooddepth == "yes":
@@ -1627,7 +1628,7 @@ if grow == 'static' or grow == 'yes':
             nodata=-9999,
             output=grownoutput+'.tif',
             overwrite=True)
-        print 'Finished creating {0}.tif after {1:.2f} minutes'.format(grownoutput,float((time.time()-time0)/60))
+        print('Finished creating {0}.tif after {1:.2f} minutes'.format(grownoutput,float((time.time()-time0)/60)))
 
     else:
         #Converts binned raster to polygons
@@ -1649,12 +1650,12 @@ if grow == 'static' or grow == 'yes':
                           quiet=True,
                           overwrite=True)
 
-        print 'Finished creating {0} after {1:.2f} minutes'.format(grownoutput,float((time.time()-time0)/60))
+        print('Finished creating {0} after {1:.2f} minutes'.format(grownoutput,float((time.time()-time0)/60)))
 ###     #Zip output and remove extranous folders ###Pay attention to output type; it's possible not all grownfiletypes can be zipped.
     os.system("zip -rq {0}.zip {0}".format(grownoutput))
     os.system("rm -fr GRASS_LOCATION_wgs84 GRASS_LOCATION kalpana_out {0}".format(grownoutput))
     if grownfiletype != 'ESRI_Shapefile':
-        print 'USER WARNING: User may be required to specify file extension for {0}'.format(grownoutput)
+        print('USER WARNING: User may be required to specify file extension for {0}'.format(grownoutput))
 
 ### HEAD LOSS METHOD ###
 if grow=="headloss":
@@ -1664,13 +1665,13 @@ if grow=="headloss":
     #Working with GRASS without starting it explicitly; using existing location.
     #This works assuming a linux operating system. If using a different operating system, see the website below.
     #More information: https://grasswiki.osgeo.org/wiki/Working_with_GRASS_without_starting_it_explicitly
-    grass7bin = 'grass72'
+    grass7bin = 'grass'
     gisdb = os.path.expanduser("./")
     startcmd = [grass7bin, '--config', 'path']
     p = subprocess.Popen(startcmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = p.communicate()
     if p.returncode !=0:
-        print >>sys.stderr, 'ERROR: Cannot find GRASS GIS 7 start script (%s)' % startcmd
+        print('ERROR: Cannot find GRASS GIS 7 start script (%s)' % startcmd, file=sys.stderr)
         sys.exit(-1)
     gisbase = out.strip('\n\r')
     os.environ['GISBASE'] = gisbase
@@ -1697,7 +1698,7 @@ if grow=="headloss":
     gsetup.init(gisbase, gisdb, location, mapset)#Setting the GRASS working environment to GRASS_LOCATION_wgs84 (WGS84;lat/long)
 
     grass.run_command('g.message',message="GRASS initialized. Begin downscaling.")
-    print "GRASS initialized after {0:.2f} seconds.".format(time.time()-time0)
+    print("GRASS initialized after {0:.2f} seconds.".format(time.time()-time0))
 
     #Importing the shapefile generated by Kalpana
     grass.run_command('v.in.ogr',
@@ -1804,7 +1805,7 @@ if grow=="headloss":
         quiet=True)
 
     grass.run_command('g.message',message="Downscaling complete. Begin hydraulic connectivity cleanup.")
-    print "Downscaling finished after {0:.2f} minutes.".format((time.time()-time0)/60.0)
+    print("Downscaling finished after {0:.2f} minutes.".format((time.time()-time0)/60.0))
 
     #CLUMPING
 
@@ -1856,7 +1857,7 @@ if grow=="headloss":
         quiet=True)
 
     grass.run_command('g.message',message="Hydraulic connectivity cleanup complete. Begin generating output format.")
-    print "Hydraulic connectivity cleanup finished after {0:.2f} minutes.".format((time.time()-time0)/60.0)
+    print("Hydraulic connectivity cleanup finished after {0:.2f} minutes.".format((time.time()-time0)/60.0))
 
     #Output the flood depths in raster format
     if flooddepth == "yes":
@@ -1889,7 +1890,7 @@ if grow=="headloss":
                           quiet=True,
                           overwrite=True)
 
-    print "Downscaling using the head loss method complete. Time required: {0:.2f} minutes.".format((time.time()-time0)/60.0)
+    print("Downscaling using the head loss method complete. Time required: {0:.2f} minutes.".format((time.time()-time0)/60.0))
 
     #Remove unnecessary folders
     os.system("zip -rq {0}.zip {0}".format(grownoutput))
