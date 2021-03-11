@@ -38,9 +38,9 @@ if [ ! -d "grdn35w078_13" ]; then
    rm temp.zip
 fi
 
-#Example 3: Native resolution and EPSG code
+#Example 3: Native resolution and NAVD EPSG code
 echo "Running Example 3 for running the latter examples using r.grow"
-$python $kalpana --createlocation yes --raster "./grdn35w077_13/w001001.adf" --createmethod existing
+$python $kalpana --createlocation yes --raster "./grdn35w077_13/w001001.adf" --resolution align --epsg 4269
 
 #Example 7: Grow using default inputs
 echo "Running Example 7"
@@ -49,7 +49,3 @@ $python $kalpana --storm florence --filetype maxele.63.nc --contourrange "0 10 0
 #Example 10: Visualize grown results as flood depths.
 echo "Running Example 10"
 $python $kalpana --storm florence --filetype maxele.63.nc --contourrange "0 10 0.1" --grow yes --grownoutput FloodDepth --flooddepth yes
-
-#Example 6: Keep original raster resolution and datum using multiple rasters.
-#echo "Running Example 6 to test multiple dems"
-#$python $kalpana --createlocation yes --raster "./grdn35w077_13/w001001.adf,./grdn35w078_13/w001001.adf" --createmethod existing --vunitconv m2f
