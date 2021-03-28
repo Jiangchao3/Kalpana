@@ -85,6 +85,7 @@ parser.add_option("--grownoutput", dest="grownoutput", default="WaterLevels_grow
 parser.add_option("--createmethod", dest="createmethod", default="null", help="enter 'existing' if the GRASS location should be created using the DEM's existing datum")
 parser.add_option("--growradius", dest="growradius", default=30.01, help="enter the maximum number of cells for r.grow extrapolation or enter [none] if no maximum grow distance is desired")
 parser.add_option("--flooddepth", dest="flooddepth", default="no", help="display flood depth output (yes or no)")
+parser.add_option("--flooddepthtype", dest="flooddepthtype", default="Float64", help="Flood depth output precision (Byte, Int16/32, Float32/64)")
 parser.add_option("--grownfiletype", dest="grownfiletype", default="ESRI_Shapefile", help="filetype for grow and/or flooddepth output. Select from available OGR formats with GRASS GIS.")
 parser.add_option("--vunitconv", dest="vunitconv", default="no", help="convert vertical units? (no or m2ft or ft2m)")
 parser.add_option("--createcostsurface", dest="createcostsurface", default="no", help="Create a cost surface for use with the head loss method?")
@@ -622,6 +623,7 @@ if options.storm == "null" :
     quiet = False
     growmethod = 'without'
     flooddepth = 'no'
+    flooddepthtype = 'Float64'
     grownfiletype = 'ESRI_Shapefile'
 else:
     filetype=options.filetype
@@ -649,6 +651,7 @@ else:
     growmethod=options.growmethod
     grownoutput=options.grownoutput
     flooddepth=options.flooddepth
+    flooddepthtype=options.flooddepthtype
     grownfiletype=options.grownfiletype
 
 if grow != "no":
@@ -1637,13 +1640,17 @@ if grow == 'static' or grow == 'yes':
     #Flood depth visualization option
     if flooddepth == "yes":
         #Take the difference between flood elevation and land elevation where flooding occurs
-        grass.mapcalc("flood_depth=if(dem>0,storm_final-dem,null())",
+        grass.mapcalc("flood_depth=if(dem>0&storm_final-dem>0,storm_final-dem,null())",
             overwrite=True)
+        nodata_value = -9999
+        if flooddepthtype == "Byte":
+            nodata_value = 255
         grass.run_command('r.out.gdal',
             input='flood_depth',
-            flags='m',
+            flags='mf',
             format='GTiff',
-            nodata=-9999,
+            type=flooddepthtype,
+            nodata=nodata_value,
             output=grownoutput+'.tif',
             overwrite=True)
         print('Finished creating {0}.tif after {1:.2f} minutes'.format(grownoutput,float((time.time()-time0)/60)))
