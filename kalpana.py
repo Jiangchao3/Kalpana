@@ -106,6 +106,9 @@ if options.createlocation == "yes":
     resolution=options.resolution
     createmethod=options.createmethod
     vunitconv=options.vunitconv
+    quiet=options.quiet
+    if quiet == None:
+       quiet=False
     if ',' in rastername:
         rastername = rastername.split(',') #If multiple input rasters exist, the input string is split into a list.
     else:
