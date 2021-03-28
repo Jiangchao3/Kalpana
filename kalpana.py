@@ -74,6 +74,7 @@ parser.add_option("-l", "--lonlatbox", dest="l", default="36 33.5 -60 -100",help
 parser.add_option("-u", "--lonlatbuffer", dest="lonlatbuffer", default="0",help="longitude latitude buffer")
 parser.add_option("-c", "--datumconv", dest="datumconv", default="no", help="datum conversion from MSL to NAVD88 (yes or no)")
 parser.add_option("-x", "--datumtextfile", dest="datumtextfile", default="rasterdeltas_capped.txt", help="name of text file for datum conversion")
+parser.add_option("--quiet", dest="quiet", action="store_true", help="make calls to GRASS functions quiet")
 parser.add_option("--grow", dest="grow", default="no", help="specify downscaling method; leave as [no] if downscaling is not desired")
 parser.add_option("--growmethod", dest="growmethod", default="without", help="choose grow method: with (with subtraction method) or without")
 parser.add_option("--createlocation", dest="createlocation", default="no", help="create a GRASS Location for use with r.grow extrapolation? (yes or no)")
@@ -197,19 +198,19 @@ if options.createlocation == "yes":
         #Set the computational region of GRASS_LOCATION based on the extents of the DEMs
         grass.run_command('g.region',
             raster=outList,
-            quiet=True)
+            quiet=quiet)
         #Patch all dems into one large DEM named 'dem'
         grass.run_command('r.patch',
             input=outList,
             output='dem',
             overwrite=True,
-            quiet=True)
+            quiet=quiet)
         #Remove each individual smaller DEM from GRASS_LOCATION
         grass.run_command('g.remove',
             type='raster',
             name=outList,
             flags='f',
-            quiet=True)
+            quiet=quiet)
     #For one DEM input:
     elif len(rastername) == 1:
         #For a specified or default resolution:
@@ -246,7 +247,7 @@ if options.createlocation == "yes":
             output="dem",
             demPreConv="demPreConv@PERMANENT",
             overwrite=True,
-            quiet=True)
+            quiet=quiet)
         grass.run_command('g.remove',flags="f",type="all",name="demPreConv")
         print("Vertical units converted from meters to feet.")
     #Convert feet to meters
@@ -256,7 +257,7 @@ if options.createlocation == "yes":
             output="dem",
             demPreConv="demPreConv@PERMANENT",
             overwrite=True,
-            quiet=True)
+            quiet=quiet)
         grass.run_command('g.remove',flags="f",type="all",name="demPreConv")
         print("Vertical units converted from feet to meters.")
 
@@ -308,7 +309,7 @@ if options.createcostsurface == "yes":
     grass.run_command("r.mask",
         raster="dem@PERMANENT",
         overwrite=True,
-        quiet=True)
+        quiet=quiet)
 
     grass.run_command('g.message',message="Begin importing land cover raster.")
 
@@ -328,7 +329,7 @@ if options.createcostsurface == "yes":
         #Import NLCD raster from unzipped data
         grass.run_command('r.import',
             overwrite=True,
-            quiet=True,
+            quiet=quiet,
             input="./NLCD_2016_Land_Cover_L48_20190424.img",
             output="landCoverClass",
             resolution="region",
@@ -338,7 +339,7 @@ if options.createcostsurface == "yes":
         #Import land cover classification raster
         grass.run_command('r.import',
             overwrite=True,
-            quiet=True,
+            quiet=quiet,
             input=landcoverraster,
             output="landCoverClass",
             resolution="region",
@@ -348,14 +349,14 @@ if options.createcostsurface == "yes":
     #Multiplication by 10000 is necessary because r.reclass only accepts integers
     grass.run_command('r.reclass',
         overwrite=True,
-        quiet=True,
+        quiet=quiet,
         input="landCoverClass@PERMANENT",
         output="manningInteger",
         rules="./landCover_manning.txt")
     #Divide by 10000.0 to convert manning data to decimal values
     grass.mapcalc("$output=if(!isnull($manningInteger),$manningInteger/10000.0,null())",
         overwrite=True,
-        quiet=True,
+        quiet=quiet,
         output="manning",
         manningInteger="manningInteger@PERMANENT")
 
@@ -366,23 +367,23 @@ if options.createcostsurface == "yes":
         output="water",
         dem="dem@PERMANENT",
         overwrite=True,
-        quiet=True)
+        quiet=quiet)
     #Grow two cells to avoid unnecessary disconnects
     grass.run_command('r.grow',
         input="water@PERMANENT",
         output="waterGrown1",
         radius=2.01,
         overwrite=True,
-        quiet=True)
+        quiet=quiet)
     #Create clumpmap containing unique ID values for each clump
     grass.run_command('r.clump',
         input="waterGrown1@PERMANENT",
         output="clumpmap",
         overwrite=True,
-        quiet=True)
+        quiet=quiet)
     #Create list of clump ID values with each associated area (#cells)
     areas=grass.read_command('r.stats',
-        quiet=True,
+        quiet=quiet,
         input="clumpmap",
         sort='desc',
         flags='a').split()
@@ -406,14 +407,14 @@ if options.createcostsurface == "yes":
         rules='-',
         stdin=reclasslist,
         overwrite=True,
-        quiet=True)
+        quiet=quiet)
     #Shrink water extents two cells to return to original pre-grown state
     grass.mapcalc("$output=if(!isnull($waterReclass)&&$dem<=0,0,null())",
         output="waterFinal",
         waterReclass="waterReclass@PERMANENT",
         dem="dem@PERMANENT",
         overwrite=True,
-        quiet=True)
+        quiet=quiet)
     #Now calculate the unit head loss for each cell within the domain
     grass.mapcalc("$output=if(!isnull($dem),($manning*$URConstant/$k)^2,null())",
         output="unitHeadLoss",
@@ -422,7 +423,7 @@ if options.createcostsurface == "yes":
         URConstant=urconst,
         k=1.49,
         overwrite=True,
-        quiet=True)
+        quiet=quiet)
 
     grass.run_command('g.message',message="MSL set. Begin r.walk iterative process.")
 
@@ -493,7 +494,7 @@ if options.createcostsurface == "yes":
     grass.mapcalc(
         "totalCost=50000",
         overwrite=True,
-        quiet=True)
+        quiet=quiet)
     iteration=0
     negativesList=[]
     for point in xyCoords:
@@ -503,11 +504,11 @@ if options.createcostsurface == "yes":
         grass.run_command('g.rename',
             raster="totalCost,oldCostMap",
             overwrite=True,
-            quiet=True)
+            quiet=quiet)
         #Create cost surface between water and each set of xyCoords
         grass.run_command('r.walk',
             overwrite=True,
-            quiet=True,
+            quiet=quiet,
             elevation="dem@PERMANENT",
             friction="unitHeadLoss@PERMANENT",
             output="walkValsFromLoop",
@@ -519,7 +520,7 @@ if options.createcostsurface == "yes":
         grass.mapcalc(
             "$newVal=if(!isnull($valFromLoop)&&&$valFromLoop<$oldVal,$valFromLoop,$oldVal)",
             overwrite=True,
-            quiet=True,
+            quiet=quiet,
             newVal="totalCost",
             valFromLoop="walkValsFromLoop@PERMANENT",
             oldVal="oldCostMap@PERMANENT")
@@ -537,7 +538,7 @@ if options.createcostsurface == "yes":
         dem="dem@PERMANENT",
         URConstant=urconst,
         overwrite=True,
-        quiet=True)
+        quiet=quiet)
 
     #Remove all unnecessary files
     if landcoverraster=="NLCD2016":
@@ -545,13 +546,13 @@ if options.createcostsurface == "yes":
 
     #Remove all unnecessary rasters
     grass.run_command("g.remove",
-        quiet=True,
+        quiet=quiet,
         flags="f",
         type="all",
         name="waterFinal@PERMANENT,manning@PERMANENT,manningInteger@PERMANENT,oldCostMap@PERMANENT,totalCost@PERMANENT,unitHeadLoss@PERMANENT,walkValsFromLoop@PERMANENT,water@PERMANENT,waterGrown1@PERMANENT,waterReclass@PERMANENT,MASK@PERMANENT")
     #Reclassified rasters must be removed before their corresponding basemaps. Basemaps are included in this step, while reclassified were removed previously.
     grass.run_command("g.remove",
-        quiet=True,
+        quiet=quiet,
         flags="f",
         type="all",
         name="clumpmap@PERMANENT,demWithNeg@PERMANENT,landCoverClass@PERMANENT")
@@ -559,7 +560,7 @@ if options.createcostsurface == "yes":
     grass.run_command("r.mask",
         raster="dem@PERMANENT",
         overwrite=True,
-        quiet=True)
+        quiet=quiet)
 
     os.system("mv GRASS_LOCATION HEADLOSS_LOCATION")
     os.system("zip -rq HEADLOSS_LOCATION.zip HEADLOSS_LOCATION")
@@ -615,6 +616,7 @@ if options.storm == "null" :
     specifiedticks = 'null'
     outputfile = 'null'
     grow = 'no'
+    quiet = False
     growmethod = 'without'
     flooddepth = 'no'
     grownfiletype = 'ESRI_Shapefile'
@@ -640,6 +642,7 @@ else:
     datumconv=options.datumconv
     datumtextfile=options.datumtextfile
     grow=options.grow
+    quiet=options.quiet
     growmethod=options.growmethod
     grownoutput=options.grownoutput
     flooddepth=options.flooddepth
@@ -650,6 +653,8 @@ if grow != "no":
     viztype = "shapefile"
     outputfile = "kalpana_out"
 
+if quiet == None:
+    quiet=False
 #
 # jgf: Change the input values to something more intuitive if necessary
 #print('INFO: storm is ' + storm)
@@ -1392,7 +1397,7 @@ if grow == 'static' or grow == 'yes':
         min_area=10,
         snap=0.000001,
         overwrite=True,
-        quiet=True)
+        quiet=quiet)
 
     #kalpana_vtorast.py begins:######################################################
     location2 = 'GRASS_LOCATION'
@@ -1406,7 +1411,7 @@ if grow == 'static' or grow == 'yes':
         input='kalpana_out@PERMANENT',
         output='kalpana_vproj',
         overwrite=True,
-        quiet=True)
+        quiet=quiet)
 
     #Read EW and NS resolution
     reg=grass.read_command('g.region',flags='g').split()
@@ -1419,7 +1424,7 @@ if grow == 'static' or grow == 'yes':
         nsres=nsresReg,
         ewres=ewresReg,
         overwrite=True,
-        quiet=True)
+        quiet=quiet)
     #Converts shapefile to raster using eleavg (average elevation per Kalpana bin).
     #Other options include elemax and elemin.
     grass.run_command('v.to.rast',
@@ -1429,12 +1434,12 @@ if grow == 'static' or grow == 'yes':
         use='attr',
         attribute_column='eleavg',
         overwrite=True,
-        quiet=True)
+        quiet=quiet)
 
     #Creates mask based on extents of DEM raster to limit area of raster operation.
     grass.run_command('r.mask',
         raster='dem@PERMANENT',
-        quiet=True,
+        quiet=quiet,
         overwrite=True)
 
     print('Finished converting water levels to raster format after {0:.2f} minutes'.format((time.time()-time0)/60))
@@ -1446,7 +1451,7 @@ if grow == 'static' or grow == 'yes':
         gsetup.init(gisbase, gisdb, location2, mapset)
         for map in [temp_dist, temp_val]:
             if map:
-                grass.run_command('g.remove', flags='fb', quiet=True,
+                grass.run_command('g.remove', flags='fb', quiet=quiet,
                                   type='rast', name=map)
 
     #atexit.register(cleanup)
@@ -1510,7 +1515,7 @@ if grow == 'static' or grow == 'yes':
         grass.mapcalc(
             "$output = if(!isnull($input),$old,if($dist < $radius && $base < $new,$new,null()))",
             output=output, input=input, radius=radius, base=base,
-            old=old, new=new, dist=temp_dist, quiet=True)
+            old=old, new=new, dist=temp_dist, quiet=quiet)
     elif shrink == False and radius == "none":
         try:
             grass.run_command('r.grow.distance', input=input, value=temp_val)
@@ -1518,18 +1523,18 @@ if grow == 'static' or grow == 'yes':
             grass.fatal(_("Growing failed. Removing temporary maps."))
         grass.mapcalc(
             "$output = if(!isnull($input),$old,if($base < $new,$new,null()))",
-            output=output, input=input, old=old, base=base, new=new, quiet=True)
+            output=output, input=input, old=old, base=base, new=new, quiet=quiet)
     else:
         # shrink
         try:
             grass.run_command('r.grow.distance', input=input, metric=metric,
-                              distance=temp_dist, value=temp_val, flags='n', quiet=True)
+                              distance=temp_dist, value=temp_val, flags='n', quiet=quiet)
         except CalledModuleError:
             grass.fatal(_("Shrinking failed. Removing temporary maps."))
 
         grass.mapcalc(
             "$output = if($dist < $radius,null(),$old)",
-            output=output, radius=radius, old=old, dist=temp_dist, quiet=True)
+            output=output, radius=radius, old=old, dist=temp_dist, quiet=quiet)
 
     # grass.run_command('r.colors', map=output, raster=input)
 
@@ -1544,7 +1549,7 @@ if grow == 'static' or grow == 'yes':
     grass.mapcalc("$output = if(!isnull($input),-1,null())",
                   output='tempmap',
                   input='WaterLevels_final_binned',
-                  quiet=True,
+                  quiet=quiet,
                   overwrite=True)
 
     # Groups the uniform raster by giving each connected group of cells a unique ID.
@@ -1552,7 +1557,7 @@ if grow == 'static' or grow == 'yes':
     grass.run_command('r.clump',
                       input='tempmap',
                       output='clumpmap',
-                      quiet=True,
+                      quiet=quiet,
                       overwrite=True)
 
     # Identifies original clumps found in the ADCIRC raster.
@@ -1560,7 +1565,7 @@ if grow == 'static' or grow == 'yes':
                   output='tempmap',
                   A='kalpana_rast',
                   B='clumpmap',
-                  quiet=True,
+                  quiet=quiet,
                   overwrite=True)
 
     # Sorts clump areas largest to smallest, removes largest clump (null clump).
@@ -1569,7 +1574,7 @@ if grow == 'static' or grow == 'yes':
                              input='tempmap',
                              sort='desc',
                              flags='c',
-                             quiet=True).split()
+                             quiet=quiet).split()
     if areas[0] == '*':
         areas = areas[2:]
     else:
@@ -1598,7 +1603,7 @@ if grow == 'static' or grow == 'yes':
                         output='tempmap',
                         rules='-',
                         stdin=reclasslist,
-                        quiet=True,
+                        quiet=quiet,
                         overwrite=True)
 
     # Passes back grown ADCIRC cells if they coincide with the assigned value (-1).
@@ -1607,7 +1612,7 @@ if grow == 'static' or grow == 'yes':
                   output='storm_final',
                   A='tempmap',
                   B='WaterLevels_final_binned',
-                  quiet=True,
+                  quiet=quiet,
                   overwrite=True)
 
     # Keyword 'with' means ADCIRC cells with values lower than the land surface
@@ -1617,12 +1622,12 @@ if grow == 'static' or grow == 'yes':
                       output='storm_final_less_errors',
                       adcirc='storm_final',
                       dem='dem',
-                      quiet=True,
+                      quiet=quiet,
                       overwrite=True)
         grass.run_command('g.rename',
                       raster=('storm_final_less_errors','storm_final_binned'),
                       overwrite=True,
-                      quiet=True)
+                      quiet=quiet)
 
     print('Finished executing r.grow after {0:.2f} minutes'.format((time.time()-time0)/60))
 
@@ -1647,7 +1652,7 @@ if grow == 'static' or grow == 'yes':
                           output=grownoutput,
                           type='area',
                           flags='s',
-                          quiet=True,
+                          quiet=quiet,
                           overwrite=True)
 
         #Export to a useful format specified in grownfiletype; defaul is ESRI shapefile
@@ -1657,7 +1662,7 @@ if grow == 'static' or grow == 'yes':
                           type='area',
                           format=grownfiletype,
                           flags='se',
-                          quiet=True,
+                          quiet=quiet,
                           overwrite=True)
 
         print('Finished creating {0} after {1:.2f} minutes'.format(grownoutput,float((time.time()-time0)/60)))
@@ -1718,7 +1723,7 @@ if grow=="headloss":
         min_area=10,
         snap=0.000001,
         overwrite=True,
-        quiet=True)
+        quiet=quiet)
 
     ### FORECAST USING HEAD LOSS METHOD ###
 
@@ -1732,11 +1737,11 @@ if grow=="headloss":
     grass.run_command('g.region',
         raster='dem@PERMANENT',
         overwrite=True,
-        quiet=True)
+        quiet=quiet)
     #Creates mask based on extents of DEM raster to limit area of raster operation.
     grass.run_command('r.mask',
         raster='dem@PERMANENT',
-        quiet=True,
+        quiet=quiet,
         overwrite=True)
     #Takes shapefile from WGS84 location and projects it into GRASS_LOCATION.
     grass.run_command('v.proj',
@@ -1745,7 +1750,7 @@ if grow=="headloss":
         input='kalpana_out@PERMANENT',
         output='water_level_vproj',
         overwrite=True,
-        quiet=True)
+        quiet=quiet)
     #Converts shapefile to raster using eleavg (average elevation per Kalpana bin).
     #Other options include elemax and elemin.
     grass.run_command('v.to.rast',
@@ -1755,25 +1760,25 @@ if grow=="headloss":
         use='attr',
         attribute_column='eleavg',
         overwrite=True,
-        quiet=True)
+        quiet=quiet)
 
     #Extrapolate ADCIRC maxele output
     grass.run_command("r.grow.distance",
         overwrite=True,
-        quiet=True,
+        quiet=quiet,
         input="ADCIRC_WL@PERMANENT",
         value="ADCIRC_WLVal")
     #Creates raster containing the cumulative raw costs within the extents of ADCIRC results
     grass.mapcalc("$output=if(!isnull($ADCIRC_WL),$rawCost,null())",
         overwrite=True,
-        quiet=True,
+        quiet=quiet,
         output="rawCostADCIRC",
         ADCIRC_WL="ADCIRC_WL@PERMANENT",
         rawCost="rawCost@PERMANENT")
     #Extrapolate cumulative raw cost values at edge of ADCIRC extent
     grass.run_command("r.grow.distance",
         overwrite=True,
-        quiet=True,
+        quiet=quiet,
         input="rawCostADCIRC@PERMANENT",
         value="rawCostADCIRCVal")
     if flooddepth != "yes":
@@ -1781,7 +1786,7 @@ if grow=="headloss":
         #between current window and ADCIRC raw costs using the average hydraulic radius.
         grass.mapcalc("$output=if($ADCIRC_WLVal>$dem&&$ADCIRC_WLVal>($dem+$exag*($rawCost-$rawCostADCIRCVal)*(1/($ADCIRC_WLVal-0.5*$dem)^(2/3))^2),$ADCIRC_WLVal,null())",
             overwrite=True,
-            quiet=True,
+            quiet=quiet,
             output="forecastWLnotClumped",
             ADCIRC_WLVal="ADCIRC_WLVal@PERMANENT",
             dem="dem@PERMANENT",
@@ -1797,7 +1802,7 @@ if grow=="headloss":
             exag=exagVal,
             rawCost="rawCost@PERMANENT",
             rawCostADCIRCVal="rawCostADCIRCVal@PERMANENT",
-            quiet=True,
+            quiet=quiet,
             overwrite=True)
         #Temporary fix for depths where rawCost < rawCostADCIRCVal
         grass.mapcalc("$output=if(!isnull($forecastWLnotClumped_temp)&&$rawCostADCIRCVal>$rawCost,$ADCIRC_WLVal-$dem,$forecastWLnotClumped_temp)",
@@ -1807,14 +1812,14 @@ if grow=="headloss":
             rawCost="rawCost@PERMANENT",
             ADCIRC_WLVal="ADCIRC_WLVal@PERMANENT",
             dem="dem@PERMANENT",
-            #quiet=True,
+            #quiet=quiet,
             overwrite=True)
 
     #Limit extents of calculation to areas where water levels exist.
     grass.run_command("r.mask",
         raster="forecastWLnotClumped@PERMANENT",
         overwrite=True,
-        quiet=True)
+        quiet=quiet)
 
     grass.run_command('g.message',message="Downscaling complete. Begin hydraulic connectivity cleanup.")
     print("Downscaling finished after {0:.2f} minutes.".format((time.time()-time0)/60.0))
@@ -1824,7 +1829,7 @@ if grow=="headloss":
     #Set output to constant value; clumps only group cells with same value
     grass.mapcalc("$output=if(!isnull($forecastWLnotClumped),-1,null())",
         overwrite=True,
-        quiet=True,
+        quiet=quiet,
         output="tempmap",
         forecastWLnotClumped="forecastWLnotClumped@PERMANENT")
     #Create unique value for each clump
@@ -1832,10 +1837,10 @@ if grow=="headloss":
         input="tempmap@PERMANENT",
         output="clumpmap",
         overwrite=True,
-        quiet=True)
+        quiet=quiet)
     #Generate separated list containing areas (m^2) of each clump
     areas=grass.read_command("r.stats",
-        quiet=True,
+        quiet=quiet,
         input="clumpmap",
         sort="desc",
         flags="cna").split()
@@ -1858,7 +1863,7 @@ if grow=="headloss":
         output="forecastWLReclass",
         rules="-",
         stdin=reclasslist,
-        quiet=True,
+        quiet=quiet,
         overwrite=True)
     #Replace with actual water level values
     grass.mapcalc("$output=if(!isnull($forecastWLReclass),$forecastWLnotClumped,null())",
@@ -1866,7 +1871,7 @@ if grow=="headloss":
         forecastWLReclass="forecastWLReclass@PERMANENT",
         forecastWLnotClumped="forecastWLnotClumped@PERMANENT",
         overwrite=True,
-        quiet=True)
+        quiet=quiet)
 
     grass.run_command('g.message',message="Hydraulic connectivity cleanup complete. Begin generating output format.")
     print("Hydraulic connectivity cleanup finished after {0:.2f} minutes.".format((time.time()-time0)/60.0))
@@ -1879,7 +1884,7 @@ if grow=="headloss":
             format='GTiff',
             nodata=-9999,
             output=grownoutput+'.tif',
-            quiet=True,
+            quiet=quiet,
             overwrite=True)
 
     else:
@@ -1889,7 +1894,7 @@ if grow=="headloss":
                           output=grownoutput,
                           type='area',
                           flags='s',
-                          quiet=True,
+                          quiet=quiet,
                           overwrite=True)
 
         #Export to a useful format specified in grownfiletype; defaul is ESRI shapefile
@@ -1899,7 +1904,7 @@ if grow=="headloss":
                           type='area',
                           format=grownfiletype,
                           flags='se',
-                          quiet=True,
+                          quiet=quiet,
                           overwrite=True)
 
     print("Downscaling using the head loss method complete. Time required: {0:.2f} minutes.".format((time.time()-time0)/60.0))
