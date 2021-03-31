@@ -1482,9 +1482,9 @@ if grow == 'static' or grow == 'yes':
     temp_dist = "r.grow.tmp.%s.dist" % tmp
 
     shrink = False
-    if radius < 0.0 and radius != "none":
-        shrink = True
     if radius != "none":
+        if radius < 0.0:
+           shrink = True
         radius = -radius
 
     if new == '' and shrink == False:
@@ -1677,7 +1677,7 @@ if grow == 'static' or grow == 'yes':
 
         print('Finished creating {0} after {1:.2f} minutes'.format(grownoutput,float((time.time()-time0)/60)))
 ###     #Zip output and remove extranous folders ###Pay attention to output type; it's possible not all grownfiletypes can be zipped.
-    os.system("zip -rq {0}.zip {0}".format(grownoutput))
+        os.system("zip -rq {0}.zip {0}".format(grownoutput))
     os.system("rm -fr GRASS_LOCATION_wgs84 GRASS_LOCATION kalpana_out {0}".format(grownoutput))
     if grownfiletype != 'ESRI_Shapefile':
         print('USER WARNING: User may be required to specify file extension for {0}'.format(grownoutput))
@@ -1916,9 +1916,9 @@ if grow=="headloss":
                           flags='se',
                           quiet=quiet,
                           overwrite=True)
+        os.system("zip -rq {0}.zip {0}".format(grownoutput))
 
     print("Downscaling using the head loss method complete. Time required: {0:.2f} minutes.".format((time.time()-time0)/60.0))
 
     #Remove unnecessary folders
-    os.system("zip -rq {0}.zip {0}".format(grownoutput))
     os.system("rm -fr HEADLOSS_LOCATION GRASS_LOCATION_wgs84 kalpana_out {0}".format(grownoutput))
