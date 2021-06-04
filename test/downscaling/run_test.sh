@@ -29,15 +29,6 @@ if [ ! -d "grdn35w077_13" ]; then
    rm temp.zip
 fi
 
-if [ ! -d "grdn35w078_13" ]; then
-   # download the test DEM
-   wget "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/ArcGrid/USGS_NED_13_n35w078_ArcGrid.zip" -O temp.zip
-   # unzip only the data part 
-   unzip temp.zip "grdn35w078_13/*"
-   # delete the archive
-   rm temp.zip
-fi
-
 #Example 3: Native resolution and NAVD EPSG code
 echo "Running Example 3 for running the latter examples using r.grow"
 $python $kalpana --createlocation yes --raster "./grdn35w077_13/w001001.adf" --resolution align --epsg 4269

@@ -21,6 +21,20 @@ import math
 import tempfile
 from zipfile import ZipFile
 #---------------------------------------------------------------------
+# Make sure grass executable and environment language is correct
+# here depending on operating system/platform (if using this feature)
+#---------------------------------------------------------------------
+from platform import platform
+if platform()[0:5] == 'Linux' or platform()[0:4] == 'Unix':
+    grass7bin = 'grass'
+    os.environ['LANG'] = 'en_US'
+elif platform()[0:5] == 'macOS':
+    grass7bin = '/Applications/GRASS-7.8.app/Contents/Resources/bin/grass78'
+    os.environ['LANG'] = 'en_US.UTF-8'
+else:
+    raise NameError('Unknown platform: ' + platform())
+#print(grass7bin)
+#---------------------------------------------------------------------
 #---------------------------------------------------------------------
 # Notes:
 #
@@ -118,9 +132,7 @@ if options.createlocation == "yes":
         rastername.append(rasternamestr) #If one input raster exists, this is added to a list of length=1.
 
     #Working with GRASS without starting it explicitly; using metadata only.
-    #This works assuming a linux operating system. If using a different operating system, see the website below.
     #More information: https://grasswiki.osgeo.org/wiki/Working_with_GRASS_without_starting_it_explicitly
-    grass7bin = 'grass'
     startcmd = grass7bin + ' --config path'
     p = subprocess.Popen(startcmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = p.communicate()
@@ -160,8 +172,8 @@ if options.createlocation == "yes":
     else:
         path = dir
     os.environ['LD_LIBRARY_PATH'] = path
-    os.environ['LANG'] = 'en_US'
     os.environ['LOCALE'] = 'C'
+    #Note: LANG environment is defined at top due to platform dependency
 
     #GRASS is now ready to be imported and used
     import grass.script as grass
@@ -277,9 +289,7 @@ if options.createcostsurface == "yes":
     os.system("unzip -q GRASS_LOCATION.zip")
     #CALL INSTANCE OF GRASS, indent everything below this line.
     #Working with GRASS without starting it explicitly; using existing location.
-    #This works assuming a linux operating system. If using a different operating system, see the website below.
     #More information: https://grasswiki.osgeo.org/wiki/Working_with_GRASS_without_starting_it_explicitly
-    grass7bin = 'grass'
     gisdb = os.path.expanduser("./")
     startcmd = [grass7bin, '--config', 'path']
     p = subprocess.Popen(startcmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -1238,7 +1248,7 @@ for i in range(len(time_var)):
                     outer,inner = classifyPolygons(polys)
                     if len(inner)>0:
                         inner_points = [pts[0] for pts in inner]
-                    overall_inout = np.zeros((len(inner),),dtype = np.bool)
+                    overall_inout = np.zeros((len(inner),),dtype = bool)
 
                     for out in outer:
                         if len(inner) > 0:
@@ -1362,10 +1372,7 @@ if grow == 'static' or grow == 'yes':
     os.system("unzip -q GRASS_LOCATION_wgs84.zip")
 
     #Working with GRASS without starting it explicitly; using existing location.
-    #This works assuming a linux operating system. If using a different operating system, see the website below.
     #More information: https://grasswiki.osgeo.org/wiki/Working_with_GRASS_without_starting_it_explicitly
-
-    grass7bin = 'grass'
     gisdb = os.path.expanduser("./")
     startcmd = [grass7bin, '--config', 'path']
     p = subprocess.Popen(startcmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -1688,9 +1695,7 @@ if grow=="headloss":
     os.system("unzip -q GRASS_LOCATION_wgs84.zip")
     #CALL INSTANCE OF GRASS, indent everything below this line.
     #Working with GRASS without starting it explicitly; using existing location.
-    #This works assuming a linux operating system. If using a different operating system, see the website below.
     #More information: https://grasswiki.osgeo.org/wiki/Working_with_GRASS_without_starting_it_explicitly
-    grass7bin = 'grass'
     gisdb = os.path.expanduser("./")
     startcmd = [grass7bin, '--config', 'path']
     p = subprocess.Popen(startcmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
