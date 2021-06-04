@@ -32,7 +32,7 @@ elif platform()[0:5] == 'macOS':
     grass7bin = '/Applications/GRASS-7.8.app/Contents/Resources/bin/grass78'
     os.environ['LANG'] = 'en_US.UTF-8'
 else:
-    raise NameError('Unknown platform: ' + platform())
+    raise RuntimeError('Unknown platform: ' + platform())
 #print(grass7bin)
 #---------------------------------------------------------------------
 #---------------------------------------------------------------------
