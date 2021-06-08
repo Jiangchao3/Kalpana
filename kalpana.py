@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import matplotlib
 matplotlib.use('Agg')
 import pylab as pl
@@ -100,6 +101,7 @@ parser.add_option("--createmethod", dest="createmethod", default="null", help="e
 parser.add_option("--growradius", dest="growradius", default=30.01, help="enter the maximum number of cells for r.grow extrapolation or enter [none] if no maximum grow distance is desired")
 parser.add_option("--flooddepth", dest="flooddepth", default="no", help="display flood depth output (yes or no)")
 parser.add_option("--flooddepthtype", dest="flooddepthtype", default="Float64", help="Flood depth output precision (Byte, Int16/32, Float32/64)")
+parser.add_option("--overlandonly", dest="overlandonly", default=False, help="display flood depths only where dem elevations are >0")
 parser.add_option("--grownfiletype", dest="grownfiletype", default="ESRI_Shapefile", help="filetype for grow and/or flooddepth output. Select from available OGR formats with GRASS GIS.")
 parser.add_option("--vunitconv", dest="vunitconv", default="no", help="convert vertical units? (no or m2ft or ft2m)")
 parser.add_option("--createcostsurface", dest="createcostsurface", default="no", help="Create a cost surface for use with the head loss method?")
@@ -633,6 +635,7 @@ if options.storm == "null" :
     quiet = False
     growmethod = 'without'
     flooddepth = 'no'
+    overlandonly = False
     flooddepthtype = 'Float64'
     grownfiletype = 'ESRI_Shapefile'
 else:
@@ -662,6 +665,7 @@ else:
     grownoutput=options.grownoutput
     flooddepth=options.flooddepth
     flooddepthtype=options.flooddepthtype
+    overlandonly=options.overlandonly
     grownfiletype=options.grownfiletype
 
 if grow != "no":
@@ -1637,6 +1641,7 @@ if grow == 'static' or grow == 'yes':
                       dem='dem',
                       quiet=quiet,
                       overwrite=True)
+                                                   # should just be storm_final?
         grass.run_command('g.rename',
                       raster=('storm_final_less_errors','storm_final_binned'),
                       overwrite=True,
@@ -1646,48 +1651,62 @@ if grow == 'static' or grow == 'yes':
 
     #Flood depth visualization option
     if flooddepth == "yes":
-        #Take the difference between flood elevation and land elevation where flooding occurs
-        grass.mapcalc("flood_depth=if(dem>0&storm_final-dem>0,storm_final-dem,null())",
-            overwrite=True)
+        #Take the difference between flood elevation and land elevation
+        if overlandonly == False:
+            grass.mapcalc("flood_depth=if(storm_final-dem>0,storm_final-dem,null())",
+                overwrite=True)
+        else:
+            #only where dem is > 0
+            grass.mapcalc("flood_depth=if(dem>0&storm_final-dem>0,storm_final-dem,null())",
+                overwrite=True)
+
+        # Rename back to storm_final
+        grass.run_command('g.rename',
+                      raster=('flood_depth','storm_final'),
+                      overwrite=True,
+                      quiet=quiet)
+
+    if grownfiletype == 'GTiff':
         nodata_value = -9999
         if flooddepthtype == "Byte":
             nodata_value = 255
         grass.run_command('r.out.gdal',
-            input='flood_depth',
+            input='storm_final',
             flags='mf',
-            format='GTiff',
+            format=grownfiletype,
             type=flooddepthtype,
             nodata=nodata_value,
             output=grownoutput+'.tif',
             overwrite=True)
         print('Finished creating {0}.tif after {1:.2f} minutes'.format(grownoutput,float((time.time()-time0)/60)))
-
     else:
+
         #Converts binned raster to polygons
         grass.run_command('r.to.vect',
-                          input='storm_final',
-                          output=grownoutput,
-                          type='area',
-                          flags='s',
-                          quiet=quiet,
-                          overwrite=True)
+                      input='storm_final',
+                      output=grownoutput,
+                      type='area',
+                      flags='s',
+                      quiet=quiet,
+                      overwrite=True)
 
-        #Export to a useful format specified in grownfiletype; defaul is ESRI shapefile
+        #Export to a useful format specified in grownfiletype; default is ESRI shapefile
         grass.run_command('v.out.ogr',
-                          input=grownoutput,
-                          output=grownoutput,
-                          type='area',
-                          format=grownfiletype,
-                          flags='se',
-                          quiet=quiet,
-                          overwrite=True)
+                      input=grownoutput,
+                      output=grownoutput,
+                      type='area',
+                      format=grownfiletype,
+                      flags='se',
+                      quiet=quiet,
+                      overwrite=True)
 
         print('Finished creating {0} after {1:.2f} minutes'.format(grownoutput,float((time.time()-time0)/60)))
-###     #Zip output and remove extranous folders ###Pay attention to output type; it's possible not all grownfiletypes can be zipped.
+        # Zip output and Pay attention to output type; it's possible not all grownfiletypes can be zipped.
         os.system("zip -rq {0}.zip {0}".format(grownoutput))
+        if grownfiletype != 'ESRI_Shapefile':
+           print('USER WARNING: User may be required to specify file extension for {0}'.format(grownoutput))
+    # Remove extraneous outputs and directories
     os.system("rm -fr GRASS_LOCATION_wgs84 GRASS_LOCATION kalpana_out {0}".format(grownoutput))
-    if grownfiletype != 'ESRI_Shapefile':
-        print('USER WARNING: User may be required to specify file extension for {0}'.format(grownoutput))
 
 ### HEAD LOSS METHOD ###
 if grow=="headloss":
